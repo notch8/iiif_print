@@ -1,7 +1,7 @@
 module IiifPrint
   module IiifSearchResponseDecorator
     # Enable the user to search for child metadata in the parent's UV
-    # @see https://github.com/scientist-softserv/louisville-hyku/commit/67467e5cf9fdb755f54419f17d3c24c87032d0af
+    # @see https://github.com/notch8/louisville-hyku/commit/67467e5cf9fdb755f54419f17d3c24c87032d0af
     def annotation_list
       json_results = super
 

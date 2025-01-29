@@ -93,7 +93,7 @@ adapter_name: 'file')).to eq("file://#{work.aark_id}/#{work.aark_id}.ARCHIVAL.#{
         # TODO: write to the rodeo; consider using AWS's spec support; I want to be able to "fake" S3
         # with a "fake" bucket.
         #
-        # Dependent on https://github.com/scientist-softserv/derivative_rodeo/pull/37
+        # Dependent on https://github.com/notch8/derivative_rodeo/pull/37
       end
 
       let(:mime_type) { "application/pdf" }

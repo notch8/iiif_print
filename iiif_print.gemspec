@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.email       = ['sean.upton@utah.edu', 'jacob.reed@utah.edu',
                       'brian.mcbride@utah.edu', 'eenglish@bpl.org', 'kirk.wang@scientist.com',
                       'larita@scientist.com', 'jeremy.n.friesen@gmail.com']
-  spec.homepage    = 'https://github.com/scientist-softserv/iiif_print/'
+  spec.homepage    = 'https://github.com/notch8/iiif_print/'
   spec.description = 'Gem/Engine for IIIF Print works in Hyrax-based Samvera Application.'
   spec.summary     = <<-SUMMARY
   IiifPrint is a gem (Rails "engine") for Hyrax-based digital repository applications to support displaying parent/child works in the same viewer (Universal Viewer) and the ability to search OCR from the parent work to the child work(s). IiifPring was originally based off of the samvera-labs Newspaper gem.

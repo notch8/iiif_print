@@ -45,7 +45,7 @@ further details.
 ### Reporting Issues
 
 - Make sure you have a [GitHub account](https://github.com/signup/free)
-- Submit a [Github issue](https://github.com/scientist-softserv/iiif_print/issues/) by:
+- Submit a [Github issue](https://github.com/notch8/iiif_print/issues/) by:
   - Clearly describing the issue
     - Provide a descriptive summary
     - Explain the expected behavior

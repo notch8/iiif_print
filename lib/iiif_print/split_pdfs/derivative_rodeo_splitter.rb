@@ -76,7 +76,7 @@ module IiifPrint
       #
       # @return [String]
       #
-      # @see https://github.com/scientist-softserv/space_stone-serverless/blob/7f46dd5b218381739cd1c771183f95408a4e0752/awslambda/handler.rb#L58-L63
+      # @see https://github.com/notch8/space_stone-serverless/blob/7f46dd5b218381739cd1c771183f95408a4e0752/awslambda/handler.rb#L58-L63
       # rubocop:disable Metrics/MethodLength
       # rubocop:disable Metrics/AbcSize
       def preprocessed_location_template
