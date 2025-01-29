@@ -184,6 +184,15 @@ module IiifPrint
       def self.extract_text_for(file_set:)
         IiifPrint.config.all_text_generator_function.call(object: file_set) || ''
       end
+
+      ##
+      # Location of the file for resplitting
+      #
+      # @param [FileSet] an ActiveFedora fileset
+      # @return [String] location of the original file
+      def self.pdf_path_for(file_set:)
+        Hyrax::WorkingDirectory.find_or_retrieve(file_set.files.first.id, file_set.id)
+      end
     end
   end
 end

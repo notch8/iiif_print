@@ -76,14 +76,28 @@ module IiifPrint
         Hyrax.config.index_field_mapper.solr_name(field_name.to_s)
       end
 
-      # rubocop:disable Lint/UnusedMethodArgument
+      # NOTE: this isn't the most efficient method, but it is the most reliable.
+      #  Attribute 'split_from_pdf_id' is saved in Valkyrie as a string rather than as { id: string },
+      #    so we can't use the 'find_inverse_references_by' query.
+      #  Additionally, the attribute does not exist on all child works, as it was added later, so using
+      #    a child work's title allows us to find child works when the attribute isn't present.
+      #  Building a custom query to find these child works directly via the attribute would be more efficient.
+      #    However, it would require more effort for a lesser-used feature, and would not allow for the fallback
+      #    of finding child works by title.
       def self.destroy_children_split_from(file_set:, work:, model:, user:)
-        # rubocop:enable Lint/UnusedMethodArgument
-        # look for child records by the file set id they were split from
-        Hyrax.query_service.find_inverse_references_by(resource: file_set, property: :split_from_pdf_id, model: model).each do |child|
-          Hyrax.persister.delete(resource: child)
-          Hyrax.indexing_service.delete(resource: child)
-          Hyrax.publisher.publish('object.deleted', object: child, user: user)
+        all_child_works = Hyrax.custom_queries.find_child_works(resource: work)
+        return if all_child_works.blank?
+        # look first for children by the file set id they were split from
+        children = all_child_works.select { |m| m.split_from_pdf_id == file_set.id }
+        if children.blank?
+          # find works where file name and work `to_param` are both in the title
+          children = all_child_works.select { |m| m.title.include?(file_set.label) && m.title.include?(work.to_param) }
+        end
+        return if children.blank?
+        children.each do |rcd|
+          Hyrax.persister.delete(resource: rcd)
+          Hyrax.index_adapter.delete(resource: rcd)
+          Hyrax.publisher.publish('object.deleted', object: rcd, user: user)
         end
         true
       end
@@ -175,6 +189,17 @@ module IiifPrint
         text_fm = fm.find { |t| t.mime_type == Marcel::MimeType.for(extension: 'txt') }
         return if text_fm.nil?
         text_fm.content
+      end
+
+      ##
+      # Location of the file for resplitting
+      #
+      # @param [Hyrax::FileSet] a Valkyrie fileset
+      # @return [String] location of the original file
+      def self.pdf_path_for(file_set:)
+       file = file_set.original_file
+       return '' unless file.pdf?
+       file.file.disk_path.to_s
       end
     end
   end
