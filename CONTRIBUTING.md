@@ -182,10 +182,10 @@ After all changes are merged:
 - Merge into main.
 - Create a new release & tag on github with this new version number.
 - Pull main to your local repo to get the release & tag.
-- Inside your docker container, run `bundle exec rake release`. This will push build the gem and push it to rubygems.org.
+- Inside your docker container, run `bundle exec rake release`. This will build the gem and push it to rubygems.org.
 
 (Note, you must have configured your rubygems login previously for this to work).
-It may be possible to build outside of docker, but this requires the ability to bundle outside of docker which can be very problematic.
+It may be possible to build the gem outside of docker, but this requires the ability to bundle outside of docker which can be very problematic.
 
 # Additional Resources
 
