@@ -20,7 +20,7 @@ RSpec.describe IiifPrint::IiifSearchDecorator do
       let(:params) { { q: 'catscan' } }
 
       it 'returns a query with the search term and filters for child or parent id' do
-        expect(subject).to eq({ q: "catscan AND (is_page_of_ssim:\"abc123\" OR id:\"abc123\")", rows: 50, page: nil })
+        expect(subject).to eq({ q: "catscan AND has_model_ssim:FileSet AND (is_page_of_ssim:\"abc123\" OR id:\"abc123\")", rows: 50, page: nil })
       end
     end
   end
