@@ -86,7 +86,8 @@ module IiifPrint
       #  Building a custom query to find these child works directly via the attribute would be more efficient.
       #    However, it would require more effort for a lesser-used feature, and would not allow for the fallback
       #    of finding child works by title.
-      def self.destroy_children_split_from(file_set:, work:, _model:, user:)
+      # rubocop:disable Lint/UnusedMethodArgument
+      def self.destroy_children_split_from(file_set:, work:, model:, user:)
         all_child_works = Hyrax.custom_queries.find_child_works(resource: work)
         return if all_child_works.blank?
         # look first for children by the file set id they were split from
@@ -103,6 +104,7 @@ module IiifPrint
         end
         true
       end
+      # rubocop:enable Lint/UnusedMethodArgument
 
       def self.pdf?(file_set)
         file_set.original_file&.pdf?
