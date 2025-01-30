@@ -1,4 +1,4 @@
-FROM ghcr.io/scientist-softserv/dev-ops/samvera:e9200061 as hyku-base
+FROM ghcr.io/notch8/dev-ops/samvera:e9200061 as hyku-base
 USER root
 RUN apk add --no-cache sqlite
 USER app

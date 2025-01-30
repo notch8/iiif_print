@@ -1,3 +1,5 @@
+# rubocop:disable Metrics/ClassLength
+
 module IiifPrint
   module PersistenceLayer
     class ValkyrieAdapter < AbstractAdapter
@@ -84,7 +86,7 @@ module IiifPrint
       #  Building a custom query to find these child works directly via the attribute would be more efficient.
       #    However, it would require more effort for a lesser-used feature, and would not allow for the fallback
       #    of finding child works by title.
-      def self.destroy_children_split_from(file_set:, work:, model:, user:)
+      def self.destroy_children_split_from(file_set:, work:, _model:, user:)
         all_child_works = Hyrax.custom_queries.find_child_works(resource: work)
         return if all_child_works.blank?
         # look first for children by the file set id they were split from
@@ -197,10 +199,11 @@ module IiifPrint
       # @param [Hyrax::FileSet] a Valkyrie fileset
       # @return [String] location of the original file
       def self.pdf_path_for(file_set:)
-       file = file_set.original_file
-       return '' unless file.pdf?
-       file.file.disk_path.to_s
+        file = file_set.original_file
+        return '' unless file.pdf?
+        file.file.disk_path.to_s
       end
     end
   end
 end
+# rubocop:enable Metrics/ClassLength

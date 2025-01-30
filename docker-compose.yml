@@ -6,7 +6,7 @@ x-app: &app
     target: hyku-base
     args:
       - EXTRA_APK_PACKAGES=less vim bash openjdk11-jre ffmpeg rsync exiftool
-  # image: ghcr.io/scientist-softserv/palni-palci:${TAG:-latest}
+  # image: ghcr.io/notch8/palni-palci:${TAG:-latest}
   env_file:
     - .env
   # NOTE: all common env variables moved to .env

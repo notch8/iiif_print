@@ -39,10 +39,10 @@ IiifPrint supports:
 * excluding specified work types to be found in the catalog search
 * external IIIF image urls that work with services such as serverless-iiif or cantaloup
 
-A complete list of features can be found [here](https://github.com/scientist-softserv/iiif_print/wiki/Features-List).
+A complete list of features can be found [here](https://github.com/notch8/iiif_print/wiki/Features-List).
 
 ## Documentation
-A set of helpful documents to help you learn more and deploy IiifPrint can be found on the [Project Wiki](https://github.com/scientist-softserv/iiif_print/wiki).
+A set of helpful documents to help you learn more and deploy IiifPrint can be found on the [Project Wiki](https://github.com/notch8/iiif_print/wiki).
 
 IiifPrint was developed against [Hyku](https://github.com/samvera/hyku) v4.0-v5.0. If your application uses [Bulkrax](https://github.com/samvera-labs/bulkrax), please ensure that its version is 5.0.1 or greater.
 
@@ -232,7 +232,7 @@ end
 
 #### Pre-Process Location
 
-The [DerivativeRodeo](https://github.com/scientist-softserv/derivative_rodeo) allows for specifying a location where you've done pre-processing (e.g. you ran splitting and derivative generation in AWS's Lambda).
+The [DerivativeRodeo](https://github.com/notch8/derivative_rodeo) allows for specifying a location where you've done pre-processing (e.g. you ran splitting and derivative generation in AWS's Lambda).
 
 By default the preprocess location is S3, as that is where SoftServ has been running pre-processing.  However that default may not be adequate for local development.
 
