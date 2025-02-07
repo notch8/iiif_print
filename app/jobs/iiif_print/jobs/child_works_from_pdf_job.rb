@@ -62,7 +62,8 @@ module IiifPrint
       # rubocop:disable Metrics/MethodLength
       def split_pdf(original_pdf_path, user, child_model, pdf_file_set)
         user = User.find_by_user_key(user) unless user.is_a?(User)
-        image_files = @parent_work.iiif_print_config.pdf_splitter_service.call(original_pdf_path)
+        # split the pdf into individual pages; pdf_file_set needed for derivative rodeo splitter
+        image_files = @parent_work.iiif_print_config.pdf_splitter_service.call(original_pdf_path, file_set: pdf_file_set)
 
         # give as much info as possible if we don't have image files to work with.
         if image_files.blank?
