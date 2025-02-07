@@ -86,7 +86,7 @@ module IiifPrint
       #  Building a custom query to find these child works directly via the attribute would be more efficient.
       #    However, it would require more effort for a lesser-used feature, and would not allow for the fallback
       #    of finding child works by title.
-      # rubocop:disable Lint/UnusedMethodArgument
+      # rubocop:disable Lint/UnusedMethodArgument, Metrics/AbcSize, Metrics/MethodLength
       def self.destroy_children_split_from(file_set:, work:, model:, user:)
         all_child_works = Hyrax.custom_queries.find_child_works(resource: work)
         return if all_child_works.blank?
@@ -97,6 +97,15 @@ module IiifPrint
           children = all_child_works.select { |m| m.title.include?(file_set.label) && m.title.include?(work.to_param) }
         end
         return if children.blank?
+        # we have to update the work's members first, then delete the children
+        # otherwise Hyrax tries to save the parent as each child is deleted, resulting
+        # in failing jobs
+        remaining_members = work.member_ids - children.map(&:id)
+        work.member_ids = remaining_members
+        Hyrax.persister.save(resource: work)
+        Hyrax.index_adapter.save(resource: work)
+        Hyrax.publisher.publish('object.membership.updated', object: work, user: user)
+
         children.each do |rcd|
           Hyrax.persister.delete(resource: rcd)
           Hyrax.index_adapter.delete(resource: rcd)
@@ -104,7 +113,7 @@ module IiifPrint
         end
         true
       end
-      # rubocop:enable Lint/UnusedMethodArgument
+      # rubocop:enable Lint/UnusedMethodArgument, Metrics/AbcSize, Metrics/MethodLength
 
       def self.pdf?(file_set)
         file_set.original_file&.pdf?
