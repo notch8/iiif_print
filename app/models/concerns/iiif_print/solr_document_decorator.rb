@@ -15,15 +15,20 @@ module IiifPrint
       iiif_print_solr_field_names.include?(method_name.to_s) || super
     end
 
-    # @see https://github.com/samvera/hyrax/commit/7108409c619cd2ba4ae8c836b9f3b429a7e9837b
+    # consists of member_ids_ssim + its descendents' member_ids (recursively)
     def file_set_ids
-      # Yes, this looks a little odd.  But the truth is the prior key (e.g. `file_set_ids_ssim`) was
-      # an alias of `member_ids_ssim`.
-      self['member_ids_ssim']
+      self['descendent_member_ids_ssim'] || self['member_ids_ssim']
     end
 
     def any_highlighting?
       response&.[]('highlighting')&.[](id)&.present?
+    end
+
+    def any_highlighting_in_all_text_fields?
+      [CatalogController.blacklight_config.iiif_search[:full_text_field]].any? do |field|
+        highlights = response&.dig('highlighting', id, field)
+        highlights&.any? { |text| text.include?("<span class='highlight'>") }
+      end
     end
 
     def solr_document

@@ -9,4 +9,4 @@ module IiifPrint
     end
   end
 end
-Hyrax::SimpleSchemaLoader.prepend(IiifPrint::SimpleSchemaLoaderDecorator)
+Hyrax::SimpleSchemaLoader.prepend(IiifPrint::SimpleSchemaLoaderDecorator) unless Hyrax.config.respond_to?(:simple_schema_loader_config_search_paths)

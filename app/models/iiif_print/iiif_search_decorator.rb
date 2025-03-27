@@ -26,7 +26,7 @@ module IiifPrint
       return { q: 'nil:nil' } unless q
 
       {
-        q: "#{q} AND (#{iiif_config[:object_relation_field]}:\"#{parent_document.id}\" OR id:\"#{parent_document.id}\")",
+        q: "#{q} AND has_model_ssim:FileSet AND (#{iiif_config[:object_relation_field]}:\"#{parent_document.id}\" OR id:\"#{parent_document.id}\")",
         rows: rows,
         page: page
       }

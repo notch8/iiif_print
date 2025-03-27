@@ -4,6 +4,12 @@ module IiifPrint
     attr_writer :after_create_fileset_handler
 
     attr_writer :ingest_queue_name
+
+    # Example settings in the initializer:
+    # config.memory_limit = "512MiB"  # Limit for memory usage
+    # config.map_limit = "1GiB"       # Limit for map usage
+    # config.disk_limit = "20KP"      # Limit for disk usage
+    attr_accessor :memory_limit, :map_limit, :disk_limit
     ##
     # @return [Symbol, Proc]
     def ingest_queue_name

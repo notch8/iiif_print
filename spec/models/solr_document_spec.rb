@@ -1,6 +1,6 @@
 require 'spec_helper'
 RSpec.describe SolrDocument do
-  let(:solr_doc) { described_class.new(id: 'foo', member_ids_ssim: ['bar']) }
+  let(:solr_doc) { described_class.new(id: 'foo', descendent_member_ids_ssim: ['bar']) }
 
   describe 'file_set_ids' do
     it 'responds to #file_set_ids' do

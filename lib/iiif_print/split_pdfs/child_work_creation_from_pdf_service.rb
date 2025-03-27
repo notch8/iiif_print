@@ -21,7 +21,7 @@ module IiifPrint
       #
       # @return [Symbol] when we don't enqueue the job
       # @return [TrueClass] when we actually enqueue the job underlying job.
-      # rubocop:disable Metrics/MethodLength
+      # rubocop:disable Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       def self.conditionally_enqueue(file_set:, file:, user:, import_url: nil, work: nil)
         work ||= IiifPrint.parent_for(file_set)
 
@@ -36,10 +36,18 @@ module IiifPrint
                          end
         return :no_pdfs_to_split if file_locations.empty?
 
-        IiifPrint.conditionally_submit_split_for(work: work, file_set: file_set, locations: file_locations, user: user)
-        :enqueued
+        file_set_id = file_set.id.try(:id) || file_set.id
+        work_admin_set_id = work.admin_set_id.try(:id) || work.admin_set_id
+        job = work.try(:iiif_print_config)&.pdf_splitter_job&.perform_later(
+          file_set_id,
+          file_locations,
+          user,
+          work_admin_set_id,
+          0 # A no longer used parameter; but we need to preserve the method signature (for now)
+        )
+        job ? :enqueued : :pdf_job_failed_enqueue
       end
-      # rubocop:enable Metrics/MethodLength
+      # rubocop:enable Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
       ##
       # @api private
@@ -63,8 +71,8 @@ module IiifPrint
 
         if file.class < Valkyrie::Resource
           # assuming that if one PDF is uploaded to a Valkyrie resource then all of them should be
-          paths = [Hyrax.storage_adapter.file_path(file.file_identifier)]
-          pdfs_only_for(paths)
+          return [] unless file.pdf?
+          [file.file.disk_path.to_s]
         else
           upload_ids = filter_file_ids(file.id.to_s)
           return [] if upload_ids.empty?

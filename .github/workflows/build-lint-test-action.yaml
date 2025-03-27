@@ -16,17 +16,16 @@ on:
 
 jobs:
   build:
-    uses: scientist-softserv/actions/.github/workflows/build.yaml@v0.0.13
+    uses: notch8/actions/.github/workflows/build.yaml@v0.0.15
     secrets: inherit
     with:
       platforms: "linux/amd64"
-      target: hyku-base
-      worker: false
+      webTarget: hyku-base
   test:
     needs: build
-    uses: scientist-softserv/actions/.github/workflows/test.yaml@v0.0.13
+    uses: notch8/actions/.github/workflows/test.yaml@v0.0.15
     with:
       setup_db_cmd: bundle exec rake prepare_and_run_tests
   lint:
     needs: build
-    uses: scientist-softserv/actions/.github/workflows/lint.yaml@v0.0.13
+    uses: notch8/actions/.github/workflows/lint.yaml@v0.0.15

@@ -26,8 +26,11 @@ module IiifPrint
       search_params = current_search_session.try(:query_params) || {}
       q = search_params['q'].presence || ''
 
+      return unless search_params[:highlight] || params[:highlight]
+
       "&q=#{url_encode(q)}" if q.present?
     end
   end
 end
+
 Hyrax::IiifHelper.prepend(IiifPrint::IiifHelperDecorator)

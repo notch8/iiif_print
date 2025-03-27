@@ -2,7 +2,7 @@
 module IiifPrint
   module BlacklightIiifSearch
     module AnnotationDecorator
-      INVALID_MATCH_TEXT = "#xywh=INVALID,INVALID,INVALID,INVALID".freeze
+      INVALID_MATCH_TEXT = "#xywh=0,0,0,0".freeze
       ##
       # Create a URL for the annotation
       # use a Hyrax-y URL syntax:

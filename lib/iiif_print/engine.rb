@@ -65,6 +65,8 @@ module IiifPrint
         config.callback.set(:after_create_fileset) do |file_set, user|
           IiifPrint.config.handle_after_create_fileset(file_set, user)
         end
+
+        config.simple_schema_loader_config_search_paths += [IiifPrint::Engine.root] if config.respond_to?(:simple_schema_loader_config_search_paths)
       end
     end
     # rubocop:enable Metrics/BlockLength

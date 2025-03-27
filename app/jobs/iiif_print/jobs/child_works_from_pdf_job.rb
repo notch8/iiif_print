@@ -33,7 +33,8 @@ module IiifPrint
         # However, there seem to be cases where we still don't have the file when we get here, so to be sure, we
         # re-do the same command that was previously used to prepare the file path. If the file is already here, it
         # simply returns the path, but if not it will copy the file there, giving us one more chance to have what we need.
-        pdf_paths = [Hyrax::WorkingDirectory.find_or_retrieve(pdf_file_set.original_file.id, pdf_file_set.id, pdf_paths.first)] if pdf_file_set
+        redownload = pdf_file_set&.is_a?(ActiveFedora::Base)
+        pdf_paths = [Hyrax::WorkingDirectory.find_or_retrieve(pdf_file_set.original_file.id, pdf_file_set.id, pdf_paths.first)] if redownload
         # handle each input pdf (when input is a file set, we will only have one).
         pdf_paths.each do |original_pdf_path|
           split_pdf(original_pdf_path, user, child_model, pdf_file_set)
@@ -61,7 +62,8 @@ module IiifPrint
       # rubocop:disable Metrics/MethodLength
       def split_pdf(original_pdf_path, user, child_model, pdf_file_set)
         user = User.find_by_user_key(user) unless user.is_a?(User)
-        image_files = @parent_work.iiif_print_config.pdf_splitter_service.call(original_pdf_path)
+        # split the pdf into individual pages; pdf_file_set needed for derivative rodeo splitter
+        image_files = @parent_work.iiif_print_config.pdf_splitter_service.call(original_pdf_path, file_set: pdf_file_set)
 
         # give as much info as possible if we don't have image files to work with.
         if image_files.blank?

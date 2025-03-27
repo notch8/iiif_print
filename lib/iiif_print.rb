@@ -66,6 +66,7 @@ module IiifPrint
       :solr_construct_query,
       :solr_name,
       :solr_query,
+      :pdf_path_for,
       to: :persistence_adapter
     )
   end

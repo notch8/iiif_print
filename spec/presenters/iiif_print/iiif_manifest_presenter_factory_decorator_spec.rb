@@ -10,7 +10,7 @@ RSpec.describe IiifPrint::IiifManifestPresenterDecorator do
     { "id" => "child_work123",
       "title_tesim" => ["My Child Image"],
       "has_model_ssim" => ["Image"],
-      "member_ids_ssim" => ["child_image_fs123"] }
+      "descendent_member_ids_ssim" => ["child_image_fs123"] }
   end
   let(:child_fs_attributes) do
     { "id" => "child_fs123",

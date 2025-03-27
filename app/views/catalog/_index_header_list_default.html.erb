@@ -3,9 +3,9 @@
 <div class="search-results-title-row">
   <h3 class="search-result-title">
   <% if params['q'].present? && document.any_highlighting? %>
-    <%= link_to document.title_or_label, [document, { parent_query: params['q'] }] %></h3>
+    <%= link_to document.title_or_label, [document, { parent_query: params['q'], highlight: 'true' }] %></h3>
   <% elsif params['q'].present? %>
-    <%= link_to document.title_or_label, [document, { query: params['q'] }] %></h3>
+    <%= link_to document.title_or_label, [document, { query: params['q'] }] %>
   <% else %>
     <%= link_to document.title_or_label, document %></h3>
   <% end %>

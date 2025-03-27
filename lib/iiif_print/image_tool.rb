@@ -41,7 +41,7 @@ module IiifPrint
       monochrome &&= destination.slice(-4, 4).index('tif')
       mono_opts = "-depth 1 -monochrome -compress Group4 -type bilevel "
       opts = monochrome ? mono_opts : ''
-      cmd = "convert #{source} #{opts}#{destination}"
+      cmd = "convert #{source} #{opts}#{destination} && sync"
       `#{cmd}`
     end
 
@@ -74,8 +74,22 @@ module IiifPrint
 
     # @return [Array<String>] lines of output from imagemagick `identify`
     def im_identify
-      cmd = "identify -format 'Geometry: %G\nDepth: %[bit-depth]\nColorspace: %[colorspace]\nAlpha: %A\nMIME type: %m\n' #{path}"
-      `#{cmd}`.lines
+      memory_limit = IiifPrint.config.memory_limit
+      map_limit = IiifPrint.config.map_limit
+      disk_limit = IiifPrint.config.disk_limit
+
+      cmd = "identify"
+
+      cmd += " -limit memory #{memory_limit}" if memory_limit.present?
+      cmd += " -limit map #{map_limit}" if map_limit.present?
+      cmd += " -limit disk #{disk_limit}" if disk_limit.present?
+
+      cmd += " -format 'Geometry: %G\nDepth: %[bit-depth]\nColorspace: %[colorspace]\nAlpha: %A\nMIME type: %m\n' #{path}"
+
+      output, status = Open3.capture2(cmd)
+      Rails.logger.info "Identify command output: #{output}"
+      Rails.logger.info "Identify command status: #{status}"
+      output.lines
     end
 
     def im_mime(lines)

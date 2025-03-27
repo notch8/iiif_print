@@ -47,26 +47,17 @@ module IiifPrint
     ##
     # @param object [#ordered_works, #file_sets, #member_ids]
     # @return [Array<String>] the ids of associated file sets and child works
-    #
-    # @see
-    # https://github.com/samvera/hyrax/blob/2b807fe101176d594129ef8a8fe466d3d03a372b/app/indexers/hyrax/work_indexer.rb#L15-L18
-    # for "clarification" of the comingling of file_set_ids and member_ids
     def self.descendent_member_ids_for(object)
       return unless object.respond_to?(:member_ids)
-
       # enables us to return parents when searching for child OCR
-      #
-      # https://github.com/samvera/hydra-works/blob/c9b9dd0cf11de671920ba0a7161db68ccf9b7f6d/lib/hydra/works/models/concerns/work_behavior.rb#L90-L92
-      #
-      # The Hydara::Works implementation of file_set_ids is "members.select(&:file_set?).map(&:id)";
-      # so no sense doing `object.file_set_ids + object.member_ids`
-      file_set_ids = object.member_ids
+      child_ids = object.member_ids
+      # add in child works & their child works & filesets, recursively
       IiifPrint.object_ordered_works(object)&.each do |child|
-        file_set_ids += Array.wrap(descendent_member_ids_for(child))
+        child_ids += Array.wrap(descendent_member_ids_for(child))
       end
       # We must convert these to strings as Valkyrie's identifiers will be cast to hashes when we
       # attempt to write the SolrDocument.
-      file_set_ids.flatten.uniq.compact.map(&:to_s)
+      child_ids.flatten.compact.map(&:to_s).uniq
     end
     class << self
       alias descendent_file_set_ids_for descendent_member_ids_for
