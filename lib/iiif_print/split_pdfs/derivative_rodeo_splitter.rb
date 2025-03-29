@@ -18,7 +18,7 @@ module IiifPrint
       #
       # @see IiifPrint::SplitPdfs::BaseSplitter
       def self.call(filename, file_set:)
-        new(filename, file_set: file_set).split_files
+        new(filename, file_set: file_set).call
       end
 
       ##
@@ -145,13 +145,23 @@ module IiifPrint
       private :rodeo_conformant_uri_exists?
 
       ##
-      # @return [Array<Strings>] the paths to each of the images split off from the PDF.
+      # @return [Array<Strings>] the local paths to each of the images split off from the PDF.
+      def call
+        # TODO: Could we off-load the copy to another job?  I'm afraid of the "cost" of copying
+        # a large number of files.
+        copy(split_files)
+      end
+
+      private
+
+      ##
+      # @return [Array<DerivativeRodeo::StorageLocations::BaseLocation>]
       def split_files
         DerivativeRodeo::Generators::PdfSplitGenerator.new(
           input_uris: [input_uri],
           output_location_template: output_location_template,
           preprocessed_location_template: preprocessed_location_template
-        ).generated_files.map(&:file_path)
+        ).generated_files
       rescue => e
         message = "#{self.class}##{__method__} encountered `#{e.class}' “#{e}” for " \
                   "input_uri: #{input_uri.inspect}, " \
@@ -159,6 +169,25 @@ module IiifPrint
                   "preprocessed_location_template: #{preprocessed_location_template.inspect}."
         exception = RuntimeError.new(message)
         exception.set_backtrace(e.backtrace)
+        DerivativeRodeo.logger.error(message)
+        raise exception
+      end
+
+      ##
+      # @param [Array<DerivativeRodeo::StorageLocations::BaseLocation>]
+      # @return [Array<String>]
+      def copy(generated_files)
+        DerivativeRodeo::Generators::CopyGenerator.new(
+          input_uris: generated_files.map(&:file_uri),
+          output_location_template: output_location_template
+        ).generated_files.map(&:file_path)
+      rescue => e
+        message = "#{self.class}##{__method__} encountered `#{e.class}' “#{e}” for " \
+                  "input_uri: #{@input_uri.inspect}, " \
+                  "output_location_template: #{output_location_template.inspect}"
+        exception = RuntimeError.new(message)
+        exception.set_backtrace(e.backtrace)
+        DerivativeRodeo.logger.error(message)
         raise exception
       end
     end
