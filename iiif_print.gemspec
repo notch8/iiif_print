@@ -21,7 +21,7 @@ SUMMARY
   spec.files = `git ls-files`.split($OUTPUT_RECORD_SEPARATOR).select { |f| File.dirname(f) !~ %r{\A"?spec\/?} && f != 'bin/rails' }
   spec.test_files = spec.files.grep(%r{^(test|spec|features)/})
   spec.add_dependency 'blacklight_iiif_search', '>= 1.0', '< 3.0'
-  spec.add_dependency 'derivative-rodeo', "~> 0.5"
+  spec.add_dependency 'derivative-rodeo', "~> 0.5", ">= 0.5.3"
   spec.add_dependency 'hyrax', '>= 2.5', '< 6'
   spec.add_dependency 'nokogiri', '>=1.13.2'
   spec.add_dependency 'rdf-vocab', '~> 3.0'
