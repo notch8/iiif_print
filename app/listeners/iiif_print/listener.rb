@@ -15,6 +15,7 @@ module IiifPrint
       file_set = event[:file_set]
       return false unless file_set
       return false unless file_set.file_set?
+      return false unless file_set.original_file&.respond_to?(:pdf?)
       return false unless file_set.original_file&.pdf?
 
       work = IiifPrint.parent_for(file_set)
