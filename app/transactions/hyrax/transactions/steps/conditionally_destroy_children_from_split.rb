@@ -14,7 +14,7 @@ module Hyrax
           return Failure(:resource_not_persisted) unless resource.persisted?
 
           parent = IiifPrint.persistence_adapter.parent_for(resource)
-          return Success(true) unless parent
+          return Success(resource) unless parent
 
           # We do not care about the results of this call; as it is conditionally looking for things
           # to destroy.
