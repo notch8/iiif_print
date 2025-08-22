@@ -19,6 +19,10 @@ RSpec.describe Hyrax::Transactions::Steps::ConditionallyDestroyChildrenFromSplit
       context 'without a parent' do
         let(:parent) { nil }
         it { is_expected.to be_success }
+
+        it 'returns the file_set resource' do
+          expect(subject.value!).to eq(file_set)
+        end
       end
 
       context 'with a parent' do
@@ -27,6 +31,12 @@ RSpec.describe Hyrax::Transactions::Steps::ConditionallyDestroyChildrenFromSplit
           expect(IiifPrint::SplitPdfs::DestroyPdfChildWorksService).to receive(:conditionally_destroy_spawned_children_of)
             .with(file_set: file_set, work: parent, user: nil)
           is_expected.to be_success
+        end
+
+        it 'returns the file_set resource' do
+          expect(IiifPrint::SplitPdfs::DestroyPdfChildWorksService).to receive(:conditionally_destroy_spawned_children_of)
+            .with(file_set: file_set, work: parent, user: nil)
+          expect(subject.value!).to eq(file_set)
         end
       end
     end
