@@ -22,11 +22,11 @@ module IiifPrint
       # @return the indexer for the given :work_type
       def self.decorate_with_adapter_logic(work_type:)
         work_type.send(:include, Hyrax::Schema(:child_works_from_pdf_splitting)) if
-          Hyrax.config.try(:work_include_metadata?) && !work_type.included_modules.include?(Hyrax::Schema(:child_works_from_pdf_splitting))
+          Hyrax.config.try(:work_include_metadata?) && !Hyrax.config.try(:flexible?) && !work_type.included_modules.include?(Hyrax::FormFields(:child_works_from_pdf_splitting))
         # TODO: Use `Hyrax::ValkyrieIndexer.indexer_class_for` once changes are merged.
         indexer = "#{work_type}Indexer".constantize
         indexer.send(:include, Hyrax::Indexer(:child_works_from_pdf_splitting)) if
-          Hyrax.config.try(:work_include_metadata?) && !indexer.included_modules.include?(Hyrax::Indexer(:child_works_from_pdf_splitting))
+          Hyrax.config.try(:work_include_metadata?) && !Hyrax.config.try(:flexible?) && !indexer.included_modules.include?(Hyrax::FormFields(:child_works_from_pdf_splitting))
         indexer
       end
 
@@ -36,7 +36,7 @@ module IiifPrint
       def self.decorate_form_with_adapter_logic(work_type:)
         form = "#{work_type}Form".constantize
         form.send(:include, Hyrax::FormFields(:child_works_from_pdf_splitting)) if
-          Hyrax.config.try(:work_include_metadata?) && !form.included_modules.include?(Hyrax::FormFields(:child_works_from_pdf_splitting))
+          Hyrax.config.try(:work_include_metadata?) && !Hyrax.config.try(:flexible?) && !form.included_modules.include?(Hyrax::FormFields(:child_works_from_pdf_splitting))
         form
       end
 
