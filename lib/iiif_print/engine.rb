@@ -60,7 +60,9 @@ module IiifPrint
       Dir.glob(File.join(File.dirname(__FILE__), "../../lib/**/*_decorator*.rb")).sort.each do |c|
         Rails.configuration.cache_classes ? require(c) : load(c)
       end
+    end
 
+    config.before_initialize do
       Hyrax.config do |config|
         config.callback.set(:after_create_fileset) do |file_set, user|
           IiifPrint.config.handle_after_create_fileset(file_set, user)
