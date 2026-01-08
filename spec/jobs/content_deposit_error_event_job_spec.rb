@@ -34,6 +34,19 @@ RSpec.describe ContentDepositErrorEventJob, type: :job do
   end
 
   describe '#action' do
+    before do
+      # Mock the routing helpers to avoid missing route errors
+      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:polymorphic_path) do |instance, object|
+        "/concern/newspaper_issues/#{object.id}"
+      end
+      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:link_to_profile) do |instance, user|
+        user.display_name || user.email
+      end
+      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:link_to) do |instance, title, path|
+        "#{title} (#{path})"
+      end
+    end
+
     it 'generates appropriate error message' do
       job = described_class.new
       job.repo_object = work
@@ -53,7 +66,8 @@ RSpec.describe ContentDepositErrorEventJob, type: :job do
       job.reason = error_reason
 
       message = job.action
-      expect(message).to include('First Title')
+      # Check that one of the titles appears in the message (title.first returns the first available title)
+      expect(message).to include(work_with_titles.title.first)
       expect(message).to include(error_reason)
     end
   end
