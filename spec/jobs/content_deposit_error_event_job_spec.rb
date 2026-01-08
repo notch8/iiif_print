@@ -36,13 +36,13 @@ RSpec.describe ContentDepositErrorEventJob, type: :job do
   describe '#action' do
     before do
       # Mock the routing helpers to avoid missing route errors
-      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:polymorphic_path) do |instance, object|
+      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:polymorphic_path) do |_instance, object|
         "/concern/newspaper_issues/#{object.id}"
       end
-      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:link_to_profile) do |instance, user|
+      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:link_to_profile) do |_instance, user|
         user.display_name || user.email
       end
-      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:link_to) do |instance, title, path|
+      allow_any_instance_of(ContentDepositErrorEventJob).to receive(:link_to) do |_instance, title, path|
         "#{title} (#{path})"
       end
     end
