@@ -79,4 +79,80 @@ RSpec.describe IiifPrint::TextExtractionDerivativeService do
       service.create_derivatives(source_image('ocr_mono.tiff'))
     end
   end
+
+  describe "Error handling" do
+    let(:user) { create(:user) }
+    let(:file_set_with_depositor) do
+      file_set = FileSet.new
+      file_set.depositor = user.user_key
+      file_set.save!(validate: false)
+      file_set
+    end
+
+    def source_image(name)
+      File.join(fixture_path, name)
+    end
+
+    it "logs error and continues when OCR creation fails" do
+      service = described_class.new(file_set_with_depositor)
+
+      # Mock the alto service to return nil path, forcing OCR path
+      alto_service = instance_double(IiifPrint::TextFormatsFromALTOService, alto_path: nil)
+      allow(IiifPrint::TextFormatsFromALTOService).to receive(:new).and_return(alto_service)
+
+      # Mock OCR creation to raise an error
+      expect(service).to receive(:create_derivatives_from_ocr).and_raise(StandardError.new("OCR processing failed"))
+
+      # Expect error logging job to be called
+      expect(ContentDepositErrorEventJob).to receive(:perform_later).with(
+        file_set_with_depositor,
+        user,
+        reason: "OCR processing failed"
+      )
+
+      # The method should not re-raise the exception
+      expect { service.create_derivatives(source_image('ocr_mono.tiff')) }.not_to raise_error
+    end
+
+    it "logs error when user cannot be found" do
+      file_set_without_user = FileSet.new
+      file_set_without_user.depositor = 'nonexistent@example.com'
+      file_set_without_user.save!(validate: false)
+
+      service = described_class.new(file_set_without_user)
+
+      # Mock the alto service to return nil path
+      alto_service = instance_double(IiifPrint::TextFormatsFromALTOService, alto_path: nil)
+      allow(IiifPrint::TextFormatsFromALTOService).to receive(:new).and_return(alto_service)
+
+      # Mock OCR creation to raise an error
+      expect(service).to receive(:create_derivatives_from_ocr).and_raise(StandardError.new("OCR failed"))
+
+      # User.find_by_user_key should return nil for nonexistent user
+      allow(User).to receive(:find_by_user_key).with('nonexistent@example.com').and_return(nil)
+
+      # Expect error logging job to still be called with nil user
+      expect(ContentDepositErrorEventJob).to receive(:perform_later).with(
+        file_set_without_user,
+        nil,
+        reason: "OCR failed"
+      )
+
+      expect { service.create_derivatives(source_image('ocr_mono.tiff')) }.not_to raise_error
+    end
+
+    it "continues normal processing when no errors occur" do
+      service = described_class.new(file_set_with_depositor)
+
+      # Mock successful ALTO processing
+      alto_service = instance_double(IiifPrint::TextFormatsFromALTOService, alto_path: '/some/path')
+      allow(IiifPrint::TextFormatsFromALTOService).to receive(:new).and_return(alto_service)
+      expect(alto_service).to receive(:create_derivatives).with(source_image('ocr_mono.tiff'))
+
+      # Should not call error logging
+      expect(ContentDepositErrorEventJob).not_to receive(:perform_later)
+
+      service.create_derivatives(source_image('ocr_mono.tiff'))
+    end
+  end
 end
