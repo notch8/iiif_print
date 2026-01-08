@@ -36,7 +36,7 @@ if ActiveModel::Type::Boolean.new.cast(ENV.fetch('HYRAX_VALKYRIE', false))
   indexers = Hyrax.config.curation_concerns.map do |concern|
     "#{concern}ResourceIndexer".safe_constantize
   end
-  indexers.each { |indexer| indexer.prepend(IiifPrint::ChildWorkIndexerDecorator) }
+  indexers.compact.each { |indexer| indexer.prepend(IiifPrint::ChildWorkIndexerDecorator) }
 
   # Versions 3.0+ of Hyrax have `Hyrax::ValkyrieWorkIndexer` so we want to decorate that as
   # well.  We want to use the elsif construct because later on Hyrax::ValkyrieWorkIndexer
