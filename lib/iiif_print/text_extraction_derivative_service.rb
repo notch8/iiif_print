@@ -19,6 +19,9 @@ module IiifPrint
       )
       return from_alto.create_derivatives(src) unless from_alto.alto_path.nil?
       create_derivatives_from_ocr(src)
+    rescue => e
+      user = User.find_by_user_key(file_set.depositor)
+      ContentDepositErrorEventJob.perform_later(file_set, user, reason: e.message)
     end
 
     def create_derivatives_from_ocr(filename)
