@@ -1,7 +1,7 @@
 PATH
   remote: /app/samvera/hyrax-webapp
   specs:
-    iiif_print (3.0.10)
+    iiif_print (3.0.11)
       blacklight_iiif_search (>= 1.0, < 3.0)
       derivative-rodeo (~> 0.5)
       hyrax (>= 2.5, < 6)
@@ -76,19 +76,19 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    addressable (2.8.7)
-      public_suffix (>= 2.0.2, < 7.0)
+    addressable (2.8.9)
+      public_suffix (>= 2.0.2, < 8.0)
     almond-rails (0.3.0)
       rails (>= 4.2)
     arel (9.0.0)
     ast (2.4.2)
     autoprefixer-rails (10.4.16.0)
       execjs (~> 2)
-    awesome_nested_set (3.8.0)
-      activerecord (>= 4.0.0, < 8.1)
+    awesome_nested_set (3.9.0)
+      activerecord (>= 4.0.0, < 8.2)
     aws-eventstream (1.4.0)
-    aws-partitions (1.1184.0)
-    aws-sdk-core (3.237.0)
+    aws-partitions (1.1221.0)
+    aws-sdk-core (3.242.0)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
@@ -96,15 +96,15 @@ GEM
       bigdecimal
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-kms (1.117.0)
-      aws-sdk-core (~> 3, >= 3.234.0)
+    aws-sdk-kms (1.122.0)
+      aws-sdk-core (~> 3, >= 3.241.4)
       aws-sigv4 (~> 1.5)
-    aws-sdk-s3 (1.203.1)
-      aws-sdk-core (~> 3, >= 3.234.0)
+    aws-sdk-s3 (1.214.0)
+      aws-sdk-core (~> 3, >= 3.241.4)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
-    aws-sdk-sqs (1.106.0)
-      aws-sdk-core (~> 3, >= 3.234.0)
+    aws-sdk-sqs (1.111.0)
+      aws-sdk-core (~> 3, >= 3.241.4)
       aws-sigv4 (~> 1.5)
     aws-sigv4 (1.12.1)
       aws-eventstream (~> 1, >= 1.0.2)
@@ -180,7 +180,7 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     concurrent-ruby (1.2.2)
-    connection_pool (2.5.4)
+    connection_pool (2.5.5)
     coveralls (0.8.23)
       json (>= 1.8, < 3)
       simplecov (~> 0.16.1)
@@ -344,11 +344,12 @@ GEM
       temple (>= 0.8.2)
       thor
       tilt
-    hashie (5.0.0)
+    hashie (5.1.0)
+      logger
     hiredis (0.6.3)
-    htmlentities (4.3.4)
-    http_logger (1.0.1)
-    httparty (0.23.2)
+    htmlentities (4.4.2)
+    http_logger (1.0.2)
+    httparty (0.24.2)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -391,8 +392,8 @@ GEM
       active-fedora (>= 10)
       mime-types (>= 1)
       rdf-vocab
-    hydra-works (2.2.0)
-      activesupport (>= 5.2, < 8.0)
+    hydra-works (2.3.0)
+      activesupport (>= 5.2, < 9.0)
       hydra-derivatives (>= 3.6)
       hydra-file_characterization (~> 1.0)
       hydra-pcdm (>= 0.9)
@@ -583,7 +584,7 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0924)
+    mime-types-data (3.2026.0303)
     mini_magick (4.13.2)
     mini_mime (1.1.5)
     mini_portile2 (2.8.5)
@@ -594,8 +595,8 @@ GEM
     mutex_m (0.3.0)
     nest (3.2.0)
       redic
-    net-http-persistent (4.0.6)
-      connection_pool (~> 2.2, >= 2.2.4)
+    net-http-persistent (4.0.8)
+      connection_pool (>= 2.2.4, < 4)
     net-imap (0.4.6)
       date
       net-protocol
