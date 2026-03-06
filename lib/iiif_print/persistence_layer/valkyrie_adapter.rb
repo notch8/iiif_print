@@ -34,9 +34,14 @@ module IiifPrint
       # @param work_type [Class<ActiveFedora::Base>]
       # @return form for the given :work_type
       def self.decorate_form_with_adapter_logic(work_type:)
+        # In Hyrax flexible metadata mode, `Hyrax::FormFields(:child_works_from_pdf_splitting)`
+        # is a no-op but calling `"#{work_type}Form".constantize` unconditionally causes a
+        # circular autoload error when a model is loaded before its form.
+        return if Hyrax.config.try(:flexible?)
+
         form = "#{work_type}Form".constantize
         form.send(:include, Hyrax::FormFields(:child_works_from_pdf_splitting)) if
-          Hyrax.config.try(:work_include_metadata?) && !Hyrax.config.try(:flexible?) && !form.included_modules.include?(Hyrax::FormFields(:child_works_from_pdf_splitting))
+          Hyrax.config.try(:work_include_metadata?) && !form.included_modules.include?(Hyrax::FormFields(:child_works_from_pdf_splitting))
         form
       end
 
