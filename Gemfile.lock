@@ -1,7 +1,7 @@
 PATH
   remote: /app/samvera/hyrax-webapp
   specs:
-    iiif_print (3.0.12)
+    iiif_print (3.1.0)
       blacklight_iiif_search (>= 1.0, < 3.0)
       derivative-rodeo (~> 0.5)
       hyrax (>= 2.5, < 6)
