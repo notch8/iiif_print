@@ -121,7 +121,17 @@ We created IiifPrint with an assumption of ActiveFedora.  However, as Hyrax now 
 
 ### IIIF URL configuration
 
-If you set EXTERNAL_IIIF_URL in your environment, then IiifPrint will use that URL as the root for your IIIF URLs. It will also switch from using the file set ID to using the SHA1 of the file as the identifier. This enables using serverless_iiif or Cantaloupe (refered to as the service) by pointing the service to the same S3 bucket that FCREPO writes the uploaded files to. By setting it up that way you do not need the service to connect to FCREPO or Hyrax at all, both natively support connecting to an S3 bucket to get their data.
+If you set `EXTERNAL_IIIF_URL` in your environment, IiifPrint will use that URL as the root for your IIIF URLs. It will also switch from using the file set ID to using the file's checksum hex digest as the identifier. In Wings/Fedora mode the digest is stored as a `urn:sha1:HEX` string; in Valkyrie mode it is stored as a plain hex string — IiifPrint handles both automatically.
+
+This enables using serverless_iiif or Cantaloupe (referred to as the service) by pointing the service to the same S3 bucket that the repository writes uploaded files to. By setting it up that way you do not need the service to connect to Fedora or Hyrax at all — both natively support connecting to an S3 bucket to retrieve file content.
+
+If your S3 bucket organises files under a folder prefix (e.g. a `staging/` or `production/` subfolder), set `IIIF_S3_FOLDER_PREFIX` to that prefix. IiifPrint will prepend it to the digest identifier and percent-encode the separator so the combined value is a single IIIF path segment:
+
+```
+EXTERNAL_IIIF_URL=https://iiif.example.org
+IIIF_S3_FOLDER_PREFIX=staging
+# → identifier used: staging%2F<hex-digest>
+```
 
 ### Model level configurations
 
