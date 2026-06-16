@@ -1,3 +1,3 @@
 module IiifPrint
-  VERSION = '3.0.12'.freeze
+  VERSION = '3.1.0'.freeze
 end
