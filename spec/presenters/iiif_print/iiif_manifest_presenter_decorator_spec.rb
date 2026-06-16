@@ -1,5 +1,54 @@
 require 'spec_helper'
 
+RSpec.describe IiifPrint::IiifManifestPresenter::DisplayImagePresenterDecorator do
+  subject(:presenter) { Hyrax::IiifManifestPresenter::DisplayImagePresenter.new(solr_doc) }
+
+  let(:solr_doc) { SolrDocument.new('digest_ssim' => [digest_value]) }
+
+  before { allow(ENV).to receive(:[]).and_call_original }
+
+  describe '#external_latest_file_id' do
+    context 'with a plain MD5 hex string (Valkyrie mode), no prefix' do
+      let(:digest_value) { '542cd898c5be91687e6c6f2c4f53f2d5' }
+
+      before { allow(ENV).to receive(:[]).with('IIIF_S3_FOLDER_PREFIX').and_return(nil) }
+
+      it 'returns the hex as-is' do
+        expect(presenter.send(:external_latest_file_id)).to eq '542cd898c5be91687e6c6f2c4f53f2d5'
+      end
+    end
+
+    context 'with a plain MD5 hex string (Valkyrie mode), with prefix' do
+      let(:digest_value) { '542cd898c5be91687e6c6f2c4f53f2d5' }
+
+      before { allow(ENV).to receive(:[]).with('IIIF_S3_FOLDER_PREFIX').and_return('staging') }
+
+      it 'percent-encodes the slash so the key is a single IIIF path segment' do
+        expect(presenter.send(:external_latest_file_id)).to eq 'staging%2F542cd898c5be91687e6c6f2c4f53f2d5'
+      end
+    end
+
+    context 'with a urn:sha1 value (Wings/Fedora mode), no prefix' do
+      let(:digest_value) { 'urn:sha1:620cae0e5cf89d9a788cb7d8e31fcbfa78340284' }
+
+      before { allow(ENV).to receive(:[]).with('IIIF_S3_FOLDER_PREFIX').and_return(nil) }
+
+      it 'strips the URN prefix and returns the hex' do
+        expect(presenter.send(:external_latest_file_id)).to eq '620cae0e5cf89d9a788cb7d8e31fcbfa78340284'
+      end
+    end
+
+    context 'when digest_ssim is absent' do
+      let(:solr_doc) { SolrDocument.new({}) }
+      let(:digest_value) { nil }
+
+      it 'returns nil' do
+        expect(presenter.send(:external_latest_file_id)).to be_nil
+      end
+    end
+  end
+end
+
 RSpec.describe IiifPrint::IiifManifestPresenterDecorator do
   let(:attributes) do
     { "id" => "abc123",
