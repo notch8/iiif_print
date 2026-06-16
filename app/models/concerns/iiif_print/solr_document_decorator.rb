@@ -2,8 +2,17 @@
 
 module IiifPrint
   module SolrDocumentDecorator
+    def digest_hex
+      raw = digest
+      return nil if raw.blank?
+      # Wings/Fedora stores "urn:sha1:HEX" or "urn:md5:HEX"; Valkyrie stores a plain hex string.
+      raw[/\Aurn:[^:]+:([\w]+)\z/, 1] || raw
+    end
+
     def digest_sha1
-      digest[/urn:sha1:([\w]+)/, 1]
+      Deprecation.warn(self, "#digest_sha1 is deprecated; use #digest_hex instead. " \
+                             "#digest_sha1 will be removed in the next major version.")
+      digest_hex
     end
 
     def method_missing(method_name, *args, &block)

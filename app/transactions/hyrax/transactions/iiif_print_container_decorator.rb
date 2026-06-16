@@ -1,5 +1,15 @@
 # frozen_string_literal: true
 
+begin
+  require 'dry/container'
+rescue LoadError
+  nil
+end
+
+# dry-transaction >= 0.15 dropped dry-container, so Dry::Container::Mixin is unavailable in those
+# environments. Guard the entire decorator so iiif_print still boots in Hyrax 2.x / newer dry-rb.
+return unless defined?(Dry::Container)
+
 module Hyrax
   module Transactions
     ##

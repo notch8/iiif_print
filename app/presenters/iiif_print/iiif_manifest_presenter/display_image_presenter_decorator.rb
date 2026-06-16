@@ -1,3 +1,5 @@
+require 'cgi'
+
 # mixin to provide URL for IIIF Content Search service
 module IiifPrint
   module IiifManifestPresenter
@@ -82,7 +84,13 @@ module IiifPrint
       end
 
       def external_latest_file_id
-        @latest_file_id ||= digest_sha1
+        hex = digest_hex
+        return nil if hex.blank?
+
+        prefix = ENV['IIIF_S3_FOLDER_PREFIX'].presence
+        return hex unless prefix
+
+        CGI.escape("#{prefix}/#{hex}")
       end
 
       def iiif_image_url_builder(url_builder:)
