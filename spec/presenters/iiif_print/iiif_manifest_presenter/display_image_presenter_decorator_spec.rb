@@ -13,10 +13,18 @@ RSpec.describe IiifPrint::IiifManifestPresenter::DisplayImagePresenterDecorator 
   # We can't rely on the bundled Hyrax for this since older versions don't define them.
   let(:current_class) do
     Class.new do
-      def ability; Hyrax::IiifManifestPresenter::NullAbility.new; end
-      def hostname; 'hyrax-hostname'; end
-      def work?; false; end
-    end.tap { |k| k.prepend(IiifPrint::IiifManifestPresenter::DisplayImagePresenterDecorator) }
+      def ability
+        Hyrax::IiifManifestPresenter::NullAbility.new
+      end
+
+      def hostname
+        'hyrax-hostname'
+      end
+
+      def work?
+        false
+      end
+    end.tap { |k| k.prepend(IiifPrint::IiifManifestPresenter::DisplayImagePresenterDecorator) }  # rubocop:disable Style/MultilineBlockChain
   end
   let(:current_presenter) { current_class.new }
 
