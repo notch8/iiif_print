@@ -13,7 +13,7 @@ module IiifPrint
       url_builder.call(*args).gsub(%r{images/}, '')
     end
 
-    def iiif_endpoint(_file_id = nil, base_url: nil)
+    def iiif_endpoint(_file_id = nil, _base_url: nil)
       IIIFManifest::IIIFEndpoint.new(
         File.join(IiifPrint.config.external_iiif_url, latest_file_id),
         profile: Hyrax.config.iiif_image_compliance_level_uri
