@@ -1,50 +1,80 @@
 require 'spec_helper'
 
-RSpec.describe IiifPrint::IiifManifestPresenter::DisplayImagePresenterDecorator do
-  subject(:presenter) { Hyrax::IiifManifestPresenter::DisplayImagePresenter.new(solr_doc) }
+RSpec.describe IiifPrint::ExternalIiifDisplayImagePresenter do
+  subject(:presenter) { described_class.new(solr_doc) }
 
   let(:solr_doc) { SolrDocument.new('digest_ssim' => [digest_value]) }
+  let(:digest_value) { nil }
 
-  before { allow(ENV).to receive(:[]).and_call_original }
+  before { allow(IiifPrint.config).to receive(:iiif_s3_folder_prefix).and_return(nil) }
 
-  describe '#external_latest_file_id' do
+  describe '#latest_file_id (private)' do
     context 'with a plain MD5 hex string (Valkyrie mode), no prefix' do
       let(:digest_value) { '542cd898c5be91687e6c6f2c4f53f2d5' }
 
-      before { allow(ENV).to receive(:[]).with('IIIF_S3_FOLDER_PREFIX').and_return(nil) }
-
-      it 'returns the hex as-is' do
-        expect(presenter.send(:external_latest_file_id)).to eq '542cd898c5be91687e6c6f2c4f53f2d5'
+      it 'CGI-escapes and returns the hex' do
+        expect(presenter.send(:latest_file_id)).to eq '542cd898c5be91687e6c6f2c4f53f2d5'
       end
     end
 
     context 'with a plain MD5 hex string (Valkyrie mode), with prefix' do
       let(:digest_value) { '542cd898c5be91687e6c6f2c4f53f2d5' }
 
-      before { allow(ENV).to receive(:[]).with('IIIF_S3_FOLDER_PREFIX').and_return('staging') }
+      before { allow(IiifPrint.config).to receive(:iiif_s3_folder_prefix).and_return('staging') }
 
       it 'percent-encodes the slash so the key is a single IIIF path segment' do
-        expect(presenter.send(:external_latest_file_id)).to eq 'staging%2F542cd898c5be91687e6c6f2c4f53f2d5'
+        expect(presenter.send(:latest_file_id)).to eq 'staging%2F542cd898c5be91687e6c6f2c4f53f2d5'
       end
     end
 
     context 'with a urn:sha1 value (Wings/Fedora mode), no prefix' do
       let(:digest_value) { 'urn:sha1:620cae0e5cf89d9a788cb7d8e31fcbfa78340284' }
 
-      before { allow(ENV).to receive(:[]).with('IIIF_S3_FOLDER_PREFIX').and_return(nil) }
-
       it 'strips the URN prefix and returns the hex' do
-        expect(presenter.send(:external_latest_file_id)).to eq '620cae0e5cf89d9a788cb7d8e31fcbfa78340284'
+        expect(presenter.send(:latest_file_id)).to eq '620cae0e5cf89d9a788cb7d8e31fcbfa78340284'
       end
     end
 
-    context 'when digest_ssim is absent' do
+    context 'when shrine_file_identifier is present (Valkyrie + Shrine S3 storage)' do
+      let(:solr_doc) { SolrDocument.new('shrine_file_identifier_ss' => 'aabbccdd-1234/eeff9900-5678') }
+
+      it 'returns the Shrine key with / encoded as %2F' do
+        expect(presenter.send(:latest_file_id)).to eq 'aabbccdd-1234%2Feeff9900-5678'
+      end
+    end
+
+    context 'when shrine_file_identifier is present, digest_ssim is also present' do
+      let(:solr_doc) do
+        SolrDocument.new(
+          'shrine_file_identifier_ss' => 'aabbccdd-1234/eeff9900-5678',
+          'digest_ssim' => ['542cd898c5be91687e6c6f2c4f53f2d5']
+        )
+      end
+
+      it 'prefers the Shrine key over the digest' do
+        expect(presenter.send(:latest_file_id)).to eq 'aabbccdd-1234%2Feeff9900-5678'
+      end
+    end
+
+    context 'when no identifier is present' do
       let(:solr_doc) { SolrDocument.new({}) }
-      let(:digest_value) { nil }
 
       it 'returns nil' do
-        expect(presenter.send(:external_latest_file_id)).to be_nil
+        expect(presenter.send(:latest_file_id)).to be_nil
       end
+    end
+  end
+
+  describe '#iiif_endpoint' do
+    let(:url) { 'https://iiif.example.com/iiif/2' }
+
+    before do
+      allow(IiifPrint.config).to receive(:external_iiif_url).and_return(url)
+      allow(presenter).to receive(:latest_file_id).and_return('abc%2Fdef')
+    end
+
+    it 'builds the endpoint from the external IIIF URL and file id' do
+      expect(presenter.iiif_endpoint.url).to eq "#{url}/abc%2Fdef"
     end
   end
 end
@@ -58,7 +88,6 @@ RSpec.describe IiifPrint::IiifManifestPresenterDecorator do
   end
   let(:solr_document) { SolrDocument.new(attributes) }
   let(:presenter) { Hyrax::IiifManifestPresenter.new(solr_document) }
-  let(:test_request) { ActionDispatch::TestRequest.new({}) }
 
   describe '#search_service' do
     it 'returns the correct URL for the IIIF Search service' do
@@ -66,53 +95,31 @@ RSpec.describe IiifPrint::IiifManifestPresenterDecorator do
     end
   end
 
-  context 'with IIIF external support' do
-    let(:presenter) { Hyrax::IiifManifestPresenter::DisplayImagePresenter.new(solr_document) }
-    let(:id) { 'abc123' }
-    let(:url) { 'external_iiif_url' }
-    let(:iiif_info_url_builder) { ->(file_id, base_url) { "#{base_url}/#{file_id}" } }
+  describe '.for factory' do
+    let(:file_set_doc) { SolrDocument.new('has_model_ssim' => ['FileSet']) }
+    let(:work_doc) { SolrDocument.new('has_model_ssim' => ['GenericWork']) }
 
-    before { allow(solr_document).to receive(:image?).and_return(true) }
+    before { allow(file_set_doc).to receive(:file_set?).and_return(true) }
+    before { allow(work_doc).to receive(:file_set?).and_return(false) }
 
-    context 'when external iiif is enabled' do
-      before do
-        allow(ENV).to receive(:[])
-        allow(ENV).to receive(:[]).with('EXTERNAL_IIIF_URL').and_return(url)
-        allow(presenter).to receive(:latest_file_id).and_return(id)
+    context 'when external_iiif_url is configured' do
+      before { allow(IiifPrint.config).to receive(:external_iiif_url).and_return('https://iiif.example.com') }
+
+      it 'returns an ExternalIiifDisplayImagePresenter for FileSets' do
+        expect(Hyrax::IiifManifestPresenter.for(file_set_doc)).to be_a(IiifPrint::ExternalIiifDisplayImagePresenter)
       end
 
-      describe '#display_image' do
-        it 'renders a external url' do
-          expect(presenter.display_image.iiif_endpoint.url).to eq "#{url}/#{id}"
-          expect(presenter.display_image.iiif_endpoint.profile).to eq "http://iiif.io/api/image/2/level2.json"
-        end
-      end
-
-      describe '#display_content' do
-        it 'renders a external url' do
-          expect(presenter.display_content.iiif_endpoint.url).to eq "#{url}/#{id}"
-          expect(presenter.display_content.iiif_endpoint.profile).to eq "http://iiif.io/api/image/2/level2.json"
-        end
+      it 'returns a plain IiifManifestPresenter for works' do
+        expect(Hyrax::IiifManifestPresenter.for(work_doc)).to be_a(Hyrax::IiifManifestPresenter)
       end
     end
 
-    context 'when external iiif is not enabled' do
-      before do
-        allow(presenter).to receive(:latest_file_id).and_return(id)
-        allow(Hyrax.config).to receive(:iiif_image_server?).and_return(true)
-        allow(Hyrax.config).to receive(:iiif_info_url_builder).and_return(iiif_info_url_builder)
-      end
+    context 'when external_iiif_url is not configured' do
+      before { allow(IiifPrint.config).to receive(:external_iiif_url).and_return(nil) }
 
-      describe '#display_image' do
-        it 'does not render a external url' do
-          expect(presenter.display_image.iiif_endpoint.url).to eq "localhost/#{id}"
-        end
-      end
-
-      describe '#display_content' do
-        it 'does not render a external url' do
-          expect(presenter.display_content.iiif_endpoint.url).to eq "localhost/#{id}"
-        end
+      it 'returns a plain DisplayImagePresenter for FileSets' do
+        expect(Hyrax::IiifManifestPresenter.for(file_set_doc)).to be_a(Hyrax::IiifManifestPresenter::DisplayImagePresenter)
+        expect(Hyrax::IiifManifestPresenter.for(file_set_doc)).not_to be_a(IiifPrint::ExternalIiifDisplayImagePresenter)
       end
     end
   end
