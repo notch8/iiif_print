@@ -121,16 +121,50 @@ We created IiifPrint with an assumption of ActiveFedora.  However, as Hyrax now 
 
 ### IIIF URL configuration
 
-If you set `EXTERNAL_IIIF_URL` in your environment, IiifPrint will use that URL as the root for your IIIF URLs. It will also switch from using the file set ID to using the file's checksum hex digest as the identifier. In Wings/Fedora mode the digest is stored as a `urn:sha1:HEX` string; in Valkyrie mode it is stored as a plain hex string — IiifPrint handles both automatically.
+If you set `EXTERNAL_IIIF_URL` in your environment, IiifPrint will use that URL as the root for your IIIF URLs and will build the IIIF identifier from the file's storage key rather than its Hyrax file set ID.
 
-This enables using serverless_iiif or Cantaloupe (referred to as the service) by pointing the service to the same S3 bucket that the repository writes uploaded files to. By setting it up that way you do not need the service to connect to Fedora or Hyrax at all — both natively support connecting to an S3 bucket to retrieve file content.
+This enables using serverless-iiif or Cantaloupe by pointing the service directly at the same S3 bucket the repository writes uploaded files to — no Fedora or Hyrax connection required.
 
-If your S3 bucket organises files under a folder prefix (e.g. a `staging/` or `production/` subfolder), set `IIIF_S3_FOLDER_PREFIX` to that prefix. IiifPrint will prepend it to the digest identifier and percent-encode the separator so the combined value is a single IIIF path segment:
+#### How the identifier is chosen
+
+The identifier depends on your persistence layer:
+
+**Valkyrie storage (e.g. Shrine + S3)**
+
+IiifPrint indexes a `storage_file_identifier` on each FileSet at ingest time. This is the storage backend's native key with its protocol prefix stripped — for example `shrine://file_set_id/uuid` becomes `file_set_id/uuid`, which is the S3 object key. This approach works with any Valkyrie storage adapter that writes to S3.
+
+Your IIIF service (serverless-iiif, Cantaloupe, etc.) must be configured to resolve identifiers as S3 object keys against the same bucket. For serverless-iiif this means setting `resolver_template` to `"%s"` so the identifier is used as-is.
+
+After enabling `EXTERNAL_IIIF_URL`, existing FileSets must be reindexed so their `storage_file_identifier` is populated in Solr. Until then the presenter falls back to the checksum digest (see below).
+
+**Wings/Fedora (ActiveFedora)**
+
+IiifPrint uses the file's checksum hex digest as the identifier. Fedora stores files in S3 using the SHA-1 digest as the object key, and stores the digest in Solr as `urn:sha1:HEX`; IiifPrint strips the `urn:sha1:` prefix automatically. No special resolver configuration is needed.
+
+**Fallback**
+
+If no `storage_file_identifier` is indexed for a FileSet (e.g. before reindexing, or on ActiveFedora), IiifPrint falls back to the checksum hex digest.
+
+#### Folder prefix
+
+If your S3 bucket organises files under a subfolder (e.g. `staging/` or `production/`), set `IIIF_S3_FOLDER_PREFIX` to that prefix. IiifPrint prepends it to the identifier and percent-encodes the separator so the combined value is a single IIIF path segment:
 
 ```
 EXTERNAL_IIIF_URL=https://iiif.example.org
 IIIF_S3_FOLDER_PREFIX=staging
-# → identifier used: staging%2F<hex-digest>
+# Valkyrie:  → identifier used: staging%2F<file_set_id/uuid>
+# Fedora:    → identifier used: staging%2F<sha1-hex>
+```
+
+#### Configuration via initializer
+
+These can also be set in `config/initializers/iiif_print.rb` instead of environment variables:
+
+```ruby
+IiifPrint.config do |config|
+  config.external_iiif_url     = 'https://iiif.example.org'
+  config.iiif_s3_folder_prefix = 'staging'
+end
 ```
 
 ### Model level configurations

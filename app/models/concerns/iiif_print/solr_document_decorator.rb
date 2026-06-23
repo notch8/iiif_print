@@ -50,6 +50,7 @@ SolrDocument.prepend(IiifPrint::SolrDocumentDecorator)
 SolrDocument.attribute :is_child, Hyrax::SolrDocument::Metadata::Solr::String, 'is_child_bsi'
 SolrDocument.attribute :split_from_pdf_id, Hyrax::SolrDocument::Metadata::Solr::String, 'split_from_pdf_id_ssi'
 SolrDocument.attribute :digest, Hyrax::SolrDocument::Metadata::Solr::String, 'digest_ssim'
+SolrDocument.attribute :storage_file_identifier, Hyrax::SolrDocument::Metadata::Solr::String, 'storage_file_identifier_ss'
 
 # @note These properties came from the newspaper_works gem.  They are configurable.
 SolrDocument.class_attribute :iiif_print_solr_field_names, default: %w[alternative_title genre

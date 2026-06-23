@@ -32,4 +32,18 @@ module IiifPrint
     end
   end
 end
+
+module IiifPrint
+  # Overrides the .for factory to return ExternalIiifDisplayImagePresenter for FileSets
+  # when an external IIIF server is configured, instead of the default DisplayImagePresenter.
+  module IiifManifestPresenterFactoryDecorator
+    def for(model)
+      return super unless model.file_set? && IiifPrint.config.external_iiif_url.present?
+
+      IiifPrint::ExternalIiifDisplayImagePresenter.new(model)
+    end
+  end
+end
+
 Hyrax::IiifManifestPresenter.prepend(IiifPrint::IiifManifestPresenterDecorator)
+Hyrax::IiifManifestPresenter.singleton_class.prepend(IiifPrint::IiifManifestPresenterFactoryDecorator)

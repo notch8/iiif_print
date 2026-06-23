@@ -134,6 +134,16 @@ module IiifPrint
       @default_iiif_manifest_version.presence || 2
     end
 
+    attr_writer :external_iiif_url
+    def external_iiif_url
+      @external_iiif_url || ENV['EXTERNAL_IIIF_URL']
+    end
+
+    attr_writer :iiif_s3_folder_prefix
+    def iiif_s3_folder_prefix
+      @iiif_s3_folder_prefix || ENV['IIIF_S3_FOLDER_PREFIX']
+    end
+
     attr_writer :metadata_fields
     # rubocop:disable Metrics/MethodLength
     # @api private

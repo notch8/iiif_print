@@ -23,6 +23,7 @@ module IiifPrint
       # index for full text search
       solr_doc['all_text_tsimv'] = solr_doc['all_text_timv'] = all_text(object)
       solr_doc['digest_ssim'] = find_checksum(object)
+      solr_doc['storage_file_identifier_ss'] = find_storage_file_identifier(object)
     end
 
     def image?(object)
@@ -42,6 +43,15 @@ module IiifPrint
       return unless digest
 
       digest.to_s
+    end
+
+    def find_storage_file_identifier(object)
+      file = object.try(:original_file)
+      return unless file.is_a?(Hyrax::FileMetadata)
+      identifier = file.file_identifier.to_s
+      # Strip whatever protocol prefix the storage backend adds (e.g. shrine://, disk://)
+      # leaving the backend-specific path/key.
+      identifier.sub(%r{\A\w+://}, '').presence
     end
 
     def all_text(object)
