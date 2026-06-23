@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# I promise I've changed
 module IiifPrint
   module FileSetIndexerDecorator
     def to_solr
