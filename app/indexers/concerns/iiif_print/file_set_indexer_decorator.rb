@@ -36,7 +36,7 @@ module IiifPrint
       return unless file
 
       digest ||= if file.is_a?(Hyrax::FileMetadata)
-                   file.checksum
+                   Array.wrap(file.checksum).first
                  else # file is a Hydra::PCDM::File (ActiveFedora)
                    file.digest.first
                  end
