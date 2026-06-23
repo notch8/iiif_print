@@ -24,7 +24,7 @@ module IiifPrint
 
     def latest_file_id
       @latest_file_id ||= begin
-        hex = model.shrine_file_identifier || digest_hex
+        hex = model.storage_file_identifier || digest_hex
         return nil if hex.blank?
 
         prefix = IiifPrint.config.iiif_s3_folder_prefix.presence

@@ -35,23 +35,23 @@ RSpec.describe IiifPrint::ExternalIiifDisplayImagePresenter do
       end
     end
 
-    context 'when shrine_file_identifier is present (Valkyrie + Shrine S3 storage)' do
-      let(:solr_doc) { SolrDocument.new('shrine_file_identifier_ss' => 'aabbccdd-1234/eeff9900-5678') }
+    context 'when storage_file_identifier is present (Valkyrie storage)' do
+      let(:solr_doc) { SolrDocument.new('storage_file_identifier_ss' => 'aabbccdd-1234/eeff9900-5678') }
 
-      it 'returns the Shrine key with / encoded as %2F' do
+      it 'returns the storage key with / encoded as %2F' do
         expect(presenter.send(:latest_file_id)).to eq 'aabbccdd-1234%2Feeff9900-5678'
       end
     end
 
-    context 'when shrine_file_identifier is present, digest_ssim is also present' do
+    context 'when storage_file_identifier is present, digest_ssim is also present' do
       let(:solr_doc) do
         SolrDocument.new(
-          'shrine_file_identifier_ss' => 'aabbccdd-1234/eeff9900-5678',
+          'storage_file_identifier_ss' => 'aabbccdd-1234/eeff9900-5678',
           'digest_ssim' => ['542cd898c5be91687e6c6f2c4f53f2d5']
         )
       end
 
-      it 'prefers the Shrine key over the digest' do
+      it 'prefers the storage key over the digest' do
         expect(presenter.send(:latest_file_id)).to eq 'aabbccdd-1234%2Feeff9900-5678'
       end
     end

@@ -9,7 +9,7 @@ RSpec.describe IiifPrint::FileSetIndexerDecorator do
   let(:instance) { test_class.new }
 
   describe '#find_checksum (private)' do
-    let(:object) { instance_double('FileSet') }
+    let(:object) { instance_double(FileSet) }
     let(:file)   { instance_double(Hyrax::FileMetadata) }
 
     before { allow(object).to receive(:original_file).and_return(file) }
