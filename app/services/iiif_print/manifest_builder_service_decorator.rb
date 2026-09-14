@@ -65,12 +65,20 @@ module IiifPrint
     end
 
     def sanitize_v3(hash:, presenter:, solr_doc_hits:)
-      hash['label']['none'].map! { |text| CGI.unescapeHTML(sanitize_value(text)) } if hash.key('label')
-      hash['items'].each do |canvas|
-        canvas['label']['none'].map! { |text| CGI.unescapeHTML(sanitize_value(text)) }
+      sanitize_v3_label(hash)
+      # A v3 manifest carries no 'items' when the factory built a v2 hash or the work has no canvases.
+      hash['items']&.each do |canvas|
+        sanitize_v3_label(canvas)
         apply_metadata_to_canvas(canvas: canvas, presenter: presenter, solr_doc_hits: solr_doc_hits)
       end
       hash
+    end
+
+    def sanitize_v3_label(node)
+      texts = node.dig('label', 'none')
+      return unless texts.is_a?(Array)
+
+      texts.map! { |text| CGI.unescapeHTML(sanitize_value(text)) }
     end
 
     def apply_metadata_to_canvas(canvas:, presenter:, solr_doc_hits:)
