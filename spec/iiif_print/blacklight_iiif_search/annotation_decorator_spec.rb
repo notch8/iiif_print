@@ -68,6 +68,17 @@ RSpec.describe IiifPrint::BlacklightIiifSearch::AnnotationDecorator do
             expect(subject).to include("#xywh=2641,4102,512,44")
           end
         end
+
+        context 'when the search term contains regex metacharacters' do
+          let(:user_query) { 'c++' }
+          let(:coordinates) do
+            JSON.parse("{\"coords\":{\"cxx\":[[1,1,1,1]],\"c++\":[[2641,4102,512,44]]}}")
+          end
+
+          it 'matches the term literally' do
+            expect(subject).to include("#xywh=2641,4102,512,44")
+          end
+        end
       end
     end
   end

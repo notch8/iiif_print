@@ -36,8 +36,9 @@ module IiifPrint
 
         query_terms = sanitized_query.split(' ')
 
+        terms_pattern = Regexp.union(query_terms)
         matches = coords_json['coords'].select do |k, _v|
-          k.downcase =~ /(#{query_terms.join('|')})/
+          k.downcase.match?(terms_pattern)
         end
         return default_coords if matches.blank?
 
