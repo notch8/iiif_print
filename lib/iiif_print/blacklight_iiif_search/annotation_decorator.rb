@@ -113,16 +113,16 @@ module IiifPrint
 
       ##
       # This method is a workaround to compensate for overriding the solr_params method in
-      # BlacklightIiifSearch::IiifSearch. In the override, the solr_params method adds an additional filter to the query
-      # to include either the object_relation_field OR the parent document's id and removes the :f parameter from the
-      # query. This resulted in the query split here returning more than the actual query term.
+      # BlacklightIiifSearch::IiifSearch. In the override, the solr_params method wraps the user's query in
+      # parentheses and adds filters for the FileSet model and the object_relation_field OR the parent document's id.
+      # This extracts the user's query from inside those parentheses so the filters are not treated as search terms.
       #
       # @see IiifPrint::IiifSearchDecorator#solr_params
-      # @return [Regexp] A regular expression to find the last AND and everything after it
+      # @return [Regexp] A regular expression capturing the user's query
       # @example
-      #   'foo AND (is_page_of_ssim:\"123123\" OR id:\"123123\")' #=> 'foo'
+      #   '(foo) AND has_model_ssim:FileSet AND (is_page_of_ssim:\"123123\" OR id:\"123123\")' #=> 'foo'
       def additional_query_terms_regex
-        /(.*)(?= AND (\(.+\)|\w+)$)/
+        /\A\((.*)\) AND has_model_ssim/m
       end
 
       ##
