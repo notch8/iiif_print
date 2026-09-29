@@ -15,10 +15,15 @@ RSpec.describe IiifPrint::BlacklightIiifSearch::AnnotationDecorator do
     SolrDocument.new('id' => parent_id,
                      'has_model_ssim' => ['NewspaperIssue'])
   end
-  let(:query) { "software AND (is_page_of_ssim:#{parent_id} OR id:#{parent_id})" }
+  let(:user_query) { 'software' }
+  let(:query) do
+    BlacklightIiifSearch::IiifSearch.new({ q: user_query }, { object_relation_field: 'is_page_of_ssim' }, parent_document)
+                                    .solr_params[:q]
+  end
+  let(:snippet) { nil }
   let(:iiif_search_annotation) do
     BlacklightIiifSearch::IiifSearchAnnotation.new(page_document, query,
-                                                   0, nil, controller,
+                                                   0, snippet, controller,
                                                    parent_document)
   end
   let(:file_set) { build(:file_set_solr_document) }
@@ -53,6 +58,63 @@ RSpec.describe IiifPrint::BlacklightIiifSearch::AnnotationDecorator do
         it 'gets the expected value from #coordinates' do
           expect(subject).to include("#xywh=2641,4102,512,44")
         end
+
+        context 'when the page text contains the word "and"' do
+          let(:coordinates) do
+            JSON.parse("{\"coords\":{\"and\":[[1,1,1,1]],\"software\":[[2641,4102,512,44]]}}")
+          end
+
+          it 'matches only the search term, not the query operators' do
+            expect(subject).to include("#xywh=2641,4102,512,44")
+          end
+        end
+
+        context 'when the search term contains regex metacharacters' do
+          let(:user_query) { 'c++' }
+          let(:coordinates) do
+            JSON.parse("{\"coords\":{\"cxx\":[[1,1,1,1]],\"c++\":[[2641,4102,512,44]]}}")
+          end
+
+          it 'matches the term literally' do
+            expect(subject).to include("#xywh=2641,4102,512,44")
+          end
+        end
+      end
+    end
+  end
+
+  describe '#as_hash' do
+    let(:snippet) { 'free <em>software</em> foundation' }
+
+    before { allow(iiif_search_annotation).to receive(:fetch_and_parse_coords).and_return(coordinates) }
+
+    subject { iiif_search_annotation.as_hash['resource']['chars'] }
+
+    it 'labels the annotation with the search term alone' do
+      expect(subject).to eq 'software'
+    end
+
+    context 'with a multi-word query' do
+      let(:user_query) { 'fast ball' }
+
+      it 'keeps every term and no filter clauses' do
+        expect(subject).to eq 'fast ball'
+      end
+    end
+
+    context 'with a line break in the query' do
+      let(:user_query) { "fast\nball" }
+
+      it 'keeps the terms on both lines' do
+        expect(subject).to eq "fast\nball"
+      end
+    end
+
+    context 'with an empty query' do
+      let(:user_query) { '' }
+
+      it 'returns an empty label' do
+        expect(subject).to eq ''
       end
     end
   end
