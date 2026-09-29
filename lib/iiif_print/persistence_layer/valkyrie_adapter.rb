@@ -96,7 +96,7 @@ module IiifPrint
       #    of finding child works by title.
       # rubocop:disable Lint/UnusedMethodArgument, Metrics/AbcSize, Metrics/MethodLength
       def self.destroy_children_split_from(file_set:, work:, model:, user:)
-        all_child_works = Hyrax.custom_queries.find_child_works(resource: work)
+        all_child_works = Hyrax.custom_queries.find_child_works(resource: work).to_a
         return if all_child_works.blank?
         # look first for children by the file set id they were split from
         children = all_child_works.select { |m| m.split_from_pdf_id == file_set.id }
