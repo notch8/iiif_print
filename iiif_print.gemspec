@@ -25,6 +25,7 @@ SUMMARY
   spec.add_dependency 'hyrax', '>= 2.5', '< 6'
   spec.add_dependency 'nokogiri', '>=1.13.2'
   spec.add_dependency 'rdf-vocab', '~> 3.0'
+  spec.add_dependency 'request_store', '>= 1.0'
 
   spec.add_development_dependency 'bixby'
   spec.add_development_dependency 'database_cleaner', '~> 1.3'

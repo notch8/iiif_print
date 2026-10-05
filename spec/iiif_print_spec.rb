@@ -117,6 +117,70 @@ RSpec.describe IiifPrint do
         expect(sort_af_fields).to eq([:date_created, :title, :creator].map { |name| IiifPrint::Field.new(name: name) })
       end
     end
+
+    context "when the sort order places the remaining fields" do
+      let(:sort_order) { [:title, :remaining, :creator] }
+
+      it "puts the unspecified fields where :remaining is" do
+        expect(sort_af_fields).to eq([:title, :date_created, :creator].map { |name| IiifPrint::Field.new(name: name) })
+      end
+    end
+  end
+
+  describe ".manifest_metadata_from" do
+    subject(:metadata) { described_class.manifest_metadata_from(work: work, presenter: presenter) }
+
+    let(:attributes) { { id: 'w1', has_model_ssim: ['GenericWork'], schema_version_ssi: '1' } }
+    let(:work) { SolrDocument.new(attributes) }
+    let(:presenter) { double(Hyrax::IiifManifestPresenter, base_url: 'https://my.dev.test', ability: double(Ability)) }
+    let(:anonymous) { double(Ability, can?: true) }
+
+    before do
+      allow(IiifPrint::Flexibility).to receive(:applies_to?).and_return(true)
+      allow(Ability).to receive(:new).with(nil).and_return(anonymous)
+      allow(IiifPrint::Flexibility::Fields).to receive(:new).and_return(instance_double(IiifPrint::Flexibility::Fields, to_a: []))
+      allow(described_class).to receive(:manifest_metadata_for).and_return(:metadata)
+    end
+
+    it "builds a flexible work from its profile, as an anonymous visitor" do
+      expect(metadata).to eq :metadata
+      expect(described_class).to have_received(:manifest_metadata_for)
+        .with(work: work, fields: [], current_ability: anonymous, base_url: 'https://my.dev.test')
+    end
+
+    it "builds one anonymous Ability per request, however many pages ask" do
+      2.times { described_class.manifest_metadata_from(work: work, presenter: presenter) }
+      expect(Ability).to have_received(:new).with(nil).once
+    end
+
+    context "with the raw Solr hit a child work's canvas passes" do
+      let(:work) { SolrHit.new(attributes.stringify_keys) }
+
+      it "builds it from its profile too" do
+        metadata
+        expect(described_class).to have_received(:manifest_metadata_for).with(hash_including(work: an_instance_of(SolrDocument)))
+      end
+    end
+
+    context "when an anonymous visitor cannot read the work" do
+      let(:anonymous) { double(Ability, can?: false) }
+
+      it "still lists the fields an anonymous visitor would see on its show page" do
+        expect(metadata).to eq :metadata
+      end
+    end
+
+    context "with a work indexed without a profile" do
+      before { allow(IiifPrint::Flexibility).to receive(:applies_to?).and_call_original }
+
+      let(:attributes) { { id: 'w1', has_model_ssim: ['GenericWork'] } }
+
+      it "uses the configured metadata fields" do
+        metadata
+        expect(described_class).to have_received(:manifest_metadata_for)
+          .with(work: work, current_ability: presenter.ability, base_url: 'https://my.dev.test')
+      end
+    end
   end
 
   describe '.conditionally_submit_split_for' do

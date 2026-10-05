@@ -289,9 +289,11 @@ module IiifPrint
     ##
     # This is the default sorter for the metadata.  It will sort by the order of the keys specificied.
     # By default, this is turned off as it returns nil. If you want to turn it on, you can set this
-    # this to an array of symbols the properties on the work.
+    # to an array of symbols for the properties on the work.  Properties not listed follow the listed
+    # ones, or take the place of `:remaining` when it is listed.
     #
     # @example [:title, :description, :date_created]
+    # @example [:title, :collection, :remaining, :rights_statement]
     # @return [Array<Symbol>]
     def iiif_metadata_field_presentation_order
       @iiif_metadata_field_presentation_order || nil

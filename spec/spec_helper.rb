@@ -37,6 +37,7 @@ RSpec.configure do |config|
   # Transactional
   config.use_transactional_fixtures = false
   config.include Devise::Test::ControllerHelpers, type: :controller
+  config.before { RequestStore.clear! }
 
   # ensure Hyrax has active sipity workflow for default admin set:
   config.before(:suite) do
