@@ -38,13 +38,13 @@ module IiifPrint
       if version == 2
         case property
         when :label      then field.label
-        when :value      then cast_to_value(field_name: field.name, options: field.options)
+        when :value      then rendered_values_for(field)
         when :collection then make_collection_link(viewable_collections)
         end
       elsif version == 3
         case property
         when :label      then { I18n.locale.to_s => [field.label] }
-        when :value      then { 'none' => cast_to_value(field_name: field.name, options: field.options) }
+        when :value      then { 'none' => rendered_values_for(field) }
         when :collection then { 'none' => make_collection_link(viewable_collections) }
         end
       end
@@ -62,6 +62,12 @@ module IiifPrint
 
     def scrub(value)
       Loofah.fragment(value).scrub!(:whitewash).to_s
+    end
+
+    def rendered_values_for(field)
+      return flexible_values.rendered(field.name, field.options) if flexible?
+
+      cast_to_value(field_name: field.name, options: field.options)
     end
 
     def cast_to_value(field_name:, options:)
@@ -98,14 +104,25 @@ module IiifPrint
     end
 
     def values_for(field_name:)
+      return flexible_values.raw(field_name.try(:name) || field_name) if flexible?
+
       field_name = field_name.try(:name) || field_name
       # TODO: we are assuming tesim or dtsi (for dates), might want to account for other suffixes in the future
       Array(work["#{field_name}_tesim"] || work["#{field_name}_dtsi"]&.to_date.try(:to_formatted_s, :standard))
     end
 
+    def flexible?
+      Flexibility.applies_to?(work)
+    end
+
+    def flexible_values
+      @flexible_values ||= Flexibility::Values.new(work: work, presenter: Flexibility.presenter_for(work, current_ability),
+                                                  base_url: @base_url, autolink: method(:make_link))
+    end
+
     def make_collection_link(collection_documents)
       collection_documents.map do |collection|
-        "<a href='#{File.join(@base_url, 'collections', collection.id)}'>#{collection.title.first}</a>"
+        "<a href='#{File.join(@base_url, 'collections', collection.id)}'>#{ERB::Util.h(collection.title.first)}</a>"
       end
     end
 

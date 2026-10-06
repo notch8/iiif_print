@@ -13,6 +13,7 @@ require "iiif_print/text_formats_from_alto_service"
 require "iiif_print/tiff_derivative_service"
 require "iiif_print/lineage_service"
 require "iiif_print/metadata"
+require "iiif_print/flexibility"
 require "iiif_print/split_pdfs/base_splitter"
 require "iiif_print/split_pdfs/child_work_creation_from_pdf_service"
 require "iiif_print/split_pdfs/derivative_rodeo_splitter"
@@ -203,8 +204,27 @@ module IiifPrint
   def self.manifest_metadata_from(work:, presenter:)
     current_ability = presenter.try(:ability) || presenter.try(:current_ability)
     base_url = presenter.try(:base_url) || presenter.try(:request)&.base_url
+    document = work.is_a?(::SolrDocument) ? work : ::SolrDocument.new(work)
+    return flexible_manifest_metadata_for(document, base_url: base_url) if Flexibility.applies_to?(document)
+
     IiifPrint.manifest_metadata_for(work: work, current_ability: current_ability, base_url: base_url)
   end
+
+  # @api private
+  #
+  # A flexible work's metadata lists the fields an anonymous visitor would see on its show page, whoever asked
+  # and whether or not the work itself is public.
+  def self.flexible_manifest_metadata_for(document, base_url:)
+    ability = anonymous_ability
+    manifest_metadata_for(work: document, fields: Flexibility::Fields.new(document, ability).to_a, current_ability: ability, base_url: base_url)
+  end
+
+  # One per request: an Ability is costly to build, and a manifest can ask once for every page.
+  def self.anonymous_ability
+    RequestStore.store[:iiif_print_anonymous_ability] ||= ::Ability.new(nil)
+  end
+  private_class_method :flexible_manifest_metadata_for, :anonymous_ability
+
   # Hash is an arbitrary attribute key/value pairs
   # Struct is a defined set of attribute "keys".  When we favor defined values,
   # then we are naming the concept and defining the range of potential values.
@@ -273,10 +293,10 @@ module IiifPrint
   def self.sort_af_fields!(fields, sort_order:)
     return fields if sort_order.blank?
 
-    fields.sort_by do |field|
-      sort_order_index = sort_order.index(field.name.to_sym)
-      sort_order_index.nil? ? sort_order.length : sort_order_index
-    end
+    remaining = sort_order.index(:remaining) || sort_order.length
+    fields.each_with_index.sort_by do |field, index|
+      [sort_order.index(field.name.to_sym) || remaining, index]
+    end.map(&:first)
   end
 
   ##
