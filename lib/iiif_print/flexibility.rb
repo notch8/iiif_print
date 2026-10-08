@@ -15,11 +15,11 @@ module IiifPrint
         Hyrax.config.try(:flexible?) && document.try(:flexible?)
       end
 
+      ##
+      # One per request for each record and ability, since both the fields and their values read from it.
       def presenter_for(document, ability)
-        return Hyrax::FileSetPresenter.new(document, ability) if document.file_set?
-
-        controller = "Hyrax::#{document.hydra_model.model_name.collection.camelize}Controller".safe_constantize
-        (controller&.show_presenter || Hyrax::WorkShowPresenter).new(document, ability)
+        presenters = Current.presenters ||= {}
+        presenters[[document.id, ability]] ||= build_presenter(document, ability)
       end
 
       ##
@@ -38,6 +38,13 @@ module IiifPrint
       end
 
       private
+
+      def build_presenter(document, ability)
+        return Hyrax::FileSetPresenter.new(document, ability) if document.file_set?
+
+        controller = "Hyrax::#{document.hydra_model.model_name.collection.camelize}Controller".safe_constantize
+        (controller&.show_presenter || Hyrax::WorkShowPresenter).new(document, ability)
+      end
 
       LEAD_FIELDS = %i[title description abstract].freeze
 
