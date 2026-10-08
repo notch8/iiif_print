@@ -10,17 +10,16 @@ RSpec.describe IiifPrint::Engine do
       end
     end
 
-    around do |example|
-      services = Hyrax::DerivativeService.services.dup
-      example.run
-    ensure
-      Hyrax::DerivativeService.services.replace(services)
-    end
-
     it 'leaves a single IiifPrint::Listener subscribed' do
       2.times { Rails.application.reloader.prepare! }
 
       expect(iiif_print_listeners).to eq 1
+    end
+
+    it 'lists the pluggable derivative service once' do
+      2.times { Rails.application.reloader.prepare! }
+
+      expect(Hyrax::DerivativeService.services.count(IiifPrint::PluggableDerivativeService)).to eq 1
     end
   end
 end
