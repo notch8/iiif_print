@@ -22,16 +22,16 @@ module IiifPrint
         @autolink = autolink
       end
 
-      # @return [Array] the field's values as stored, blanks dropped
+      # @return [Array] the field's values as stored, blanks and all-blank compound entries dropped
       def raw(field_name)
-        Array(@presenter.try(field_name)).reject(&:blank?)
+        Array(@presenter.try(field_name)).reject { |value| CompoundValues.blank_entry?(value) }
       end
 
       # @return [Array<String>] the field's values as html
       def rendered(field_name, options)
         options ||= {}
         values = Array(@presenter.try(field_name)).reject(&:blank?)
-        return [values.map { |entry| "<p>#{compound_value(field_name, entry)}</p>" }.join] if options[:render_as].to_s == 'compound'
+        return [compound_values(field_name, values)] if options[:render_as].to_s == 'compound'
 
         labels = labels_for(field_name, values)
         values.map { |value| value(field_name, value.to_s, labels[value.to_s], options) }
@@ -127,17 +127,8 @@ module IiifPrint
         url
       end
 
-      # One entry as Hyrax's compound renderer, and any decorator the app gives it, renders it on the show page, with
-      # a line break where each innermost block ended, since IIIF allows no blocks.
-      def compound_value(field_name, entry)
-        renderer = Hyrax::Renderers::CompoundAttributeRenderer.new(field_name, [entry], subproperties: compound_subproperties(field_name))
-        fragment = Nokogiri::HTML.fragment(renderer.render_value)
-        fragment.css('div').each { |div| div.add_next_sibling('<br>') unless div.at_css('div') }
-        sanitize_html(fragment.to_html).gsub(/\s*<br>\s*/, '<br>').sub(/(<br>)+\z/, '')
-      end
-
-      def compound_subproperties(field_name)
-        @presenter.send(:compound_subproperties_for, field_name) if @presenter.respond_to?(:compound_subproperties_for, true)
+      def compound_values(field_name, entries)
+        CompoundValues.new(field_name, presenter: @presenter, sanitize: method(:sanitize_html)).to_html(entries)
       end
 
       def link(href, text)

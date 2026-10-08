@@ -453,10 +453,15 @@ RSpec.describe IiifPrint::Metadata do
         end
       end
 
+      let(:solr_document) { double('SolrDocument') }
+      let(:compound_schema) do
+        double('Hyrax::CompoundSchema', definition_for: { subproperties: { 'name' => { label: 'Name' }, 'role' => { label: 'Role' } } })
+      end
+
       before do
         stub_const('Hyrax::Renderers::CompoundAttributeRenderer', compound_renderer)
-        allow(presenter).to receive(:compound_subproperties_for).with(:creators)
-                                                                .and_return('name' => { label: 'Name' }, 'role' => { label: 'Role' })
+        stub_const('Hyrax::CompoundSchema', double(for_solr_document: compound_schema))
+        allow(presenter).to receive(:solr_document).and_return(solr_document)
       end
 
       it "puts each entry in its own paragraph, one profile-labeled sub-property per line, IIIF-safe" do
@@ -465,6 +470,54 @@ RSpec.describe IiifPrint::Metadata do
           %(<span>Role:</span> <a href="#{base_url}/authorities/Editor">Editor</a>x()</p>) +
           %(<p><span>Role:</span> <a href="#{base_url}/authorities/artist">artist</a>x()</p>)
         ]
+      end
+
+      it "reads the sub-property labels from the record's compound schema" do
+        metadata
+        expect(Hyrax::CompoundSchema).to have_received(:for_solr_document).with(solr_document)
+        expect(compound_schema).to have_received(:definition_for).with(:creators)
+      end
+
+      context "with an entry whose values are all blank" do
+        let(:values) { { creators: [{ 'name' => 'Smith' }, { 'name' => '', 'role' => nil }] } }
+
+        it "leaves it out" do
+          expect(metadata['creators']).to eq [%(<p><span>Name:</span> <a href="#{base_url}/authorities/Smith">Smith</a>x()</p>)]
+        end
+      end
+
+      context "with only entries whose values are all blank" do
+        let(:values) { { creators: [{ 'name' => '', 'role' => nil }] } }
+
+        it "leaves the field out" do
+          expect(metadata).not_to have_key('creators')
+        end
+      end
+    end
+
+    context "with a compound field on a Hyrax without the compound renderer" do
+      let(:values) { { creators: [{ 'name' => 'Smith & Co', 'role' => 'Editor' }, { 'name' => 'Jones' }] } }
+
+      before { hide_const('Hyrax::Renderers::CompoundAttributeRenderer') }
+
+      it "lists each entry's values, one per line" do
+        expect(metadata['creators']).to eq ['<p>Smith &amp; Co<br>Editor</p><p>Jones</p>']
+      end
+    end
+
+    context "with a compound field on a Hyrax without the compound schema" do
+      let(:values) { { creators: [{ 'name' => 'Smith' }] } }
+      let(:compound_renderer) { double('CompoundAttributeRenderer', new: double(render_value: '<div>Smith</div>')) }
+
+      before do
+        hide_const('Hyrax::CompoundSchema')
+        stub_const('Hyrax::Renderers::CompoundAttributeRenderer', compound_renderer)
+        allow(presenter).to receive(:solr_document).and_return(double('SolrDocument'))
+      end
+
+      it "renders each entry without sub-property labels" do
+        expect(metadata['creators']).to eq ['<p>Smith</p>']
+        expect(compound_renderer).to have_received(:new).with(:creators, [{ 'name' => 'Smith' }], subproperties: nil)
       end
     end
   end
