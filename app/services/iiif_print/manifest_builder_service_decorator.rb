@@ -65,12 +65,17 @@ module IiifPrint
     end
 
     def sanitize_v3(hash:, presenter:, solr_doc_hits:)
-      hash['label']['none'].map! { |text| CGI.unescapeHTML(sanitize_value(text)) } if hash.key('label')
+      sanitize_v3_label(hash)
       hash['items'].each do |canvas|
-        canvas['label']['none'].map! { |text| CGI.unescapeHTML(sanitize_value(text)) }
+        sanitize_v3_label(canvas)
         apply_metadata_to_canvas(canvas: canvas, presenter: presenter, solr_doc_hits: solr_doc_hits)
       end
       hash
+    end
+
+    # A v3 label is a language map: { 'none' => [...] }, { 'en' => [...] }, ...
+    def sanitize_v3_label(node)
+      node['label']&.each_value { |texts| texts.map! { |text| CGI.unescapeHTML(sanitize_value(text)) } }
     end
 
     def apply_metadata_to_canvas(canvas:, presenter:, solr_doc_hits:)
@@ -152,6 +157,6 @@ module IiifPrint
       results
     end
   end
-  # rubocop:enable Metrics/ClassLength
+  # rubocop:enable Metrics/ModuleLength
 end
 Hyrax::ManifestBuilderService.prepend(IiifPrint::ManifestBuilderServiceDecorator)
