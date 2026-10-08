@@ -47,7 +47,7 @@ module IiifPrint
         IiifPrint::PluggableDerivativeService
       )
 
-      Hyrax.publisher.subscribe(IiifPrint::Listener.new) if Hyrax.respond_to?(:publisher)
+      IiifPrint.subscribe_listener if Hyrax.respond_to?(:publisher)
 
       # Load locales early so decorators can use them during initialization
       I18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.yml'),
