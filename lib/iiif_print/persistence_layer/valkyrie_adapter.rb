@@ -94,7 +94,7 @@ module IiifPrint
       #  Building a custom query to find these child works directly via the attribute would be more efficient.
       #    However, it would require more effort for a lesser-used feature, and would not allow for the fallback
       #    of finding child works by title.
-      # rubocop:disable Lint/UnusedMethodArgument, Metrics/AbcSize, Metrics/MethodLength
+      # rubocop:disable Lint/UnusedMethodArgument
       def self.destroy_children_split_from(file_set:, work:, model:, user:)
         all_child_works = Hyrax.custom_queries.find_child_works(resource: work).to_a
         return if all_child_works.blank?
@@ -114,14 +114,20 @@ module IiifPrint
         Hyrax.index_adapter.save(resource: work)
         Hyrax.publisher.publish('object.membership.updated', object: work, user: user)
 
-        children.each do |rcd|
-          Hyrax.persister.delete(resource: rcd)
-          Hyrax.index_adapter.delete(resource: rcd)
-          Hyrax.publisher.publish('object.deleted', object: rcd, user: user)
-        end
+        children.each { |child| destroy_child_work(child, user: user || ::User.system_user) }
         true
       end
-      # rubocop:enable Lint/UnusedMethodArgument, Metrics/AbcSize, Metrics/MethodLength
+      # rubocop:enable Lint/UnusedMethodArgument
+
+      # Not persister.delete: the work transaction also deletes the child's own file sets.
+      def self.destroy_child_work(child, user:)
+        result = Hyrax::Transactions::Container['work_resource.destroy']
+                 .with_step_args('work_resource.delete_all_file_sets' => { user: user },
+                                 'work_resource.delete' => { user: user })
+                 .call(child)
+        Rails.logger.error("IiifPrint could not destroy split child work #{child.id}: #{result.failure.inspect}") if result.failure?
+        result
+      end
 
       def self.pdf?(file_set)
         file_set.original_file&.pdf?
