@@ -52,6 +52,7 @@ module IiifPrint
         !(options[:admin_only] || options[:editor_only] || options[:show_page] == false)
       end
 
+      # Mirrors Hyrax's AttributesHelper#conform_options, so a field is labeled as its show page labels it.
       def label(name, options)
         labels = options[:display_label] || {}
         label = (labels[I18n.locale.to_s] || labels['default'] || name).to_s
