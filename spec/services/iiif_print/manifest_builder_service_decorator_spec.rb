@@ -17,4 +17,28 @@ RSpec.describe IiifPrint::ManifestBuilderServiceDecorator do
       expect(builder_service.version).to eq(3)
     end
   end
+
+  context '#sanitize_v3' do
+    subject(:builder_service) { Hyrax::ManifestBuilderService.new(version: 3) }
+
+    def sanitize(hash)
+      builder_service.send(:sanitize_v3, hash: hash, presenter: nil, solr_doc_hits: nil)
+    end
+
+    it 'returns a manifest that has no canvases' do
+      hash = { 'label' => { 'none' => ['Moomin'] } }
+
+      expect(sanitize(hash)).to eq('label' => { 'none' => ['Moomin'] })
+    end
+
+    it 'unescapes the manifest label' do
+      hash = { 'label' => { 'none' => ['Moomin &amp; Co'] } }
+
+      expect(sanitize(hash)['label']['none']).to eq(['Moomin & Co'])
+    end
+
+    it 'leaves a manifest with no label alone' do
+      expect { sanitize({}) }.not_to raise_error
+    end
+  end
 end
