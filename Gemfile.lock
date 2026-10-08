@@ -7,7 +7,6 @@ PATH
       hyrax (>= 2.5, < 6)
       nokogiri (>= 1.13.2)
       rdf-vocab (~> 3.0)
-      request_store (>= 1.0)
 
 GEM
   remote: https://rubygems.org/

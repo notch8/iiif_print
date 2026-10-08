@@ -153,6 +153,13 @@ RSpec.describe IiifPrint do
       expect(Ability).to have_received(:new).with(nil).once
     end
 
+    it "builds a new anonymous Ability once the current attributes reset, as around each request and job" do
+      described_class.manifest_metadata_from(work: work, presenter: presenter)
+      ActiveSupport::CurrentAttributes.reset_all
+      described_class.manifest_metadata_from(work: work, presenter: presenter)
+      expect(Ability).to have_received(:new).with(nil).twice
+    end
+
     context "with the raw Solr hit a child work's canvas passes" do
       let(:work) { SolrHit.new(attributes.stringify_keys) }
 

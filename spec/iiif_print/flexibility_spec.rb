@@ -50,6 +50,13 @@ RSpec.describe IiifPrint::Flexibility do
       expect(loader).to have_received(:view_definitions_for).once
     end
 
+    it "reads them again once the current attributes reset, as around each request and job" do
+      described_class.view_definitions_for(document)
+      ActiveSupport::CurrentAttributes.reset_all
+      described_class.view_definitions_for(document)
+      expect(loader).to have_received(:view_definitions_for).twice
+    end
+
     it "reads them again for another tenant, which numbers its own profile versions" do
       tenant = double(current: 'tenant-a')
       stub_const('Apartment::Tenant', tenant)

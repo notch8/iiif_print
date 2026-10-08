@@ -27,7 +27,7 @@ module IiifPrint
       # gives them no view block, since the show page shows those outside its field list.  Read once per request
       # for each tenant, schema, version and context; each tenant numbers its own profile versions.
       def view_definitions_for(document)
-        cache = RequestStore.store[:iiif_print_view_definitions] ||= {}
+        cache = Current.view_definitions ||= {}
         version = document.try(:schema_version)
         contexts = document.try(:contexts)
         tenant = Apartment::Tenant.current if defined?(Apartment::Tenant)

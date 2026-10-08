@@ -13,6 +13,8 @@ require "iiif_print/text_formats_from_alto_service"
 require "iiif_print/tiff_derivative_service"
 require "iiif_print/lineage_service"
 require "iiif_print/metadata"
+# ActiveSupport::CurrentAttributes arrived in Rails 5.2; only the flexible metadata path, which needs a newer Hyrax, uses it.
+require "iiif_print/current" if defined?(ActiveSupport::CurrentAttributes)
 require "iiif_print/flexibility"
 require "iiif_print/split_pdfs/base_splitter"
 require "iiif_print/split_pdfs/child_work_creation_from_pdf_service"
@@ -231,7 +233,7 @@ module IiifPrint
 
   # One per request: an Ability is costly to build, and a manifest can ask once for every page.
   def self.anonymous_ability
-    RequestStore.store[:iiif_print_anonymous_ability] ||= ::Ability.new(nil)
+    Current.anonymous_ability ||= ::Ability.new(nil)
   end
   private_class_method :flexible_manifest_metadata_for, :anonymous_ability
 

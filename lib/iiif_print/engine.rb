@@ -2,7 +2,6 @@ require 'active_fedora'
 require 'hyrax'
 require 'blacklight_iiif_search'
 require 'derivative_rodeo'
-require 'request_store'
 
 module IiifPrint
   # module constants:
