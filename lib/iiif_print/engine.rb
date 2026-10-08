@@ -43,11 +43,10 @@ module IiifPrint
       #   To configure specific services, inject each service, in desired order
       #   to IiifPrint::PluggableDerivativeService.plugins array.
 
-      Hyrax::DerivativeService.services.unshift(
-        IiifPrint::PluggableDerivativeService
-      )
+      derivative_services = Hyrax::DerivativeService.services
+      derivative_services.unshift(IiifPrint::PluggableDerivativeService) unless derivative_services.include?(IiifPrint::PluggableDerivativeService)
 
-      Hyrax.publisher.subscribe(IiifPrint::Listener.new) if Hyrax.respond_to?(:publisher)
+      IiifPrint.subscribe_listener if Hyrax.respond_to?(:publisher)
 
       # Load locales early so decorators can use them during initialization
       I18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.yml'),

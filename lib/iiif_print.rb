@@ -42,6 +42,16 @@ module IiifPrint
     @config
   end
 
+  ##
+  # Subscribes a new IiifPrint::Listener in place of the one an earlier prepare subscribed.
+  # Dry::Events neither deduplicates subscriptions nor unsubscribes by class, and after a code
+  # reload the earlier listener's class is the unloaded one, so it is tracked here.
+  def self.subscribe_listener(publisher: Hyrax.publisher)
+    publisher.unsubscribe(@listener) if @listener
+    @listener = IiifPrint::Listener.new
+    publisher.subscribe(@listener)
+  end
+
   class << self
     delegate(
       :persistence_adapter,
