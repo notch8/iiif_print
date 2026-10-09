@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "iiif_print/flexibility/fields"
+require "iiif_print/flexibility/compound_values"
 require "iiif_print/flexibility/values"
 
 module IiifPrint
