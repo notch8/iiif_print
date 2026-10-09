@@ -68,7 +68,10 @@ module IiifPrint
         Hyrax.query_service.find_parents(resource: parent).first
       end
 
+      # @deprecated Use Hyrax::SolrQueryBuilderService.construct_query; removed in IiifPrint 4.0.
       def self.solr_construct_query(*args)
+        Deprecation.warn(self, "solr_construct_query is deprecated and will be removed in IiifPrint 4.0; " \
+                               "use Hyrax::SolrQueryBuilderService.construct_query instead.")
         Hyrax::SolrQueryBuilderService.construct_query(*args)
       end
 

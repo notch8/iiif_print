@@ -3,6 +3,15 @@
 require 'spec_helper'
 
 RSpec.describe IiifPrint::PersistenceLayer::ValkyrieAdapter do
+  describe '.solr_construct_query' do
+    it 'still builds the query, with a deprecation warning' do
+      allow(Deprecation).to receive(:warn)
+      expect(described_class.solr_construct_query(is_child_bsi: 'true'))
+        .to eq Hyrax::SolrQueryBuilderService.construct_query(is_child_bsi: 'true')
+      expect(Deprecation).to have_received(:warn).with(described_class, /IiifPrint 4\.0/)
+    end
+  end
+
   describe '.destroy_children_split_from' do
     subject { described_class.destroy_children_split_from(file_set: file_set, work: work, model: nil, user: nil) }
 

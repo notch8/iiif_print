@@ -1,7 +1,20 @@
 # frozen_string_literal: true
 
 module IiifPrint
+  # @deprecated IiifPrint has not applied this since 3.0; Hyrax::WorkShowPresenter#iiif_viewer? now counts
+  #   images on child works. Removed in IiifPrint 4.0.
   module WorkShowPresenterDecorator
+    DEPRECATION_MESSAGE = "IiifPrint::WorkShowPresenterDecorator is deprecated and will be removed in IiifPrint 4.0; " \
+                          "Hyrax::WorkShowPresenter#iiif_viewer? now counts images on child works."
+
+    def self.prepended(_base)
+      Deprecation.warn(self, DEPRECATION_MESSAGE)
+    end
+
+    def self.included(_base)
+      Deprecation.warn(self, DEPRECATION_MESSAGE)
+    end
+
     delegate :member_ids, to: :solr_document
     alias file_set_ids member_ids
 
