@@ -9,7 +9,8 @@ module IiifPrint
       query = if blacklight_params["include_child_works"] == 'true'
                 IiifPrint.solr_construct_query(is_child_bsi: 'true')
               else
-                IiifPrint.solr_construct_query(is_child_bsi: nil)
+                # Only child works are left out; a work indexed with is_child_bsi false is not a child.
+                '-is_child_bsi:true'
               end
       solr_parameters[:fq] += [query]
     end

@@ -1,6 +1,9 @@
 require 'spec_helper'
+require 'support/show_parents_only_examples'
 
 RSpec.describe IiifPrint::CatalogSearchBuilder do
+  it_behaves_like 'a search builder that shows parent works only'
+
   # specs for IiifPrint::HighlightSearchParams
   describe 'highlight_search_params' do
     let(:solr_parameters) { { q: 'abolition' } }
