@@ -17,6 +17,21 @@ RSpec.describe IiifPrint::Flexibility do
 
       it { is_expected.to be_a Hyrax::WorkShowPresenter }
     end
+
+    context "asked twice for the same record and ability" do
+      let(:document) { SolrDocument.new(id: 'fs1', has_model_ssim: ['FileSet']) }
+      let(:ability) { double(Ability) }
+
+      it "builds one presenter" do
+        expect(described_class.presenter_for(document, ability)).to be described_class.presenter_for(document, ability)
+      end
+
+      it "builds a new one once the current attributes reset, as around each request and job" do
+        first = described_class.presenter_for(document, ability)
+        ActiveSupport::CurrentAttributes.reset_all
+        expect(described_class.presenter_for(document, ability)).not_to be first
+      end
+    end
   end
 
   describe ".view_definitions_for" do
@@ -48,6 +63,13 @@ RSpec.describe IiifPrint::Flexibility do
     it "reads them once per request" do
       2.times { described_class.view_definitions_for(document) }
       expect(loader).to have_received(:view_definitions_for).once
+    end
+
+    it "reads them again once the current attributes reset, as around each request and job" do
+      described_class.view_definitions_for(document)
+      ActiveSupport::CurrentAttributes.reset_all
+      described_class.view_definitions_for(document)
+      expect(loader).to have_received(:view_definitions_for).twice
     end
 
     it "reads them again for another tenant, which numbers its own profile versions" do

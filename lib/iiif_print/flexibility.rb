@@ -16,11 +16,11 @@ module IiifPrint
         Hyrax.config.try(:flexible?) && document.try(:flexible?)
       end
 
+      ##
+      # One per request for each record and ability, since both the fields and their values read from it.
       def presenter_for(document, ability)
-        return Hyrax::FileSetPresenter.new(document, ability) if document.file_set?
-
-        controller = "Hyrax::#{document.hydra_model.model_name.collection.camelize}Controller".safe_constantize
-        (controller&.show_presenter || Hyrax::WorkShowPresenter).new(document, ability)
+        presenters = Current.presenters ||= {}
+        presenters[[document.id, ability]] ||= build_presenter(document, ability)
       end
 
       ##
@@ -28,7 +28,7 @@ module IiifPrint
       # gives them no view block, since the show page shows those outside its field list.  Read once per request
       # for each tenant, schema, version and context; each tenant numbers its own profile versions.
       def view_definitions_for(document)
-        cache = RequestStore.store[:iiif_print_view_definitions] ||= {}
+        cache = Current.view_definitions ||= {}
         version = document.try(:schema_version)
         contexts = document.try(:contexts)
         tenant = Apartment::Tenant.current if defined?(Apartment::Tenant)
@@ -39,6 +39,13 @@ module IiifPrint
       end
 
       private
+
+      def build_presenter(document, ability)
+        return Hyrax::FileSetPresenter.new(document, ability) if document.file_set?
+
+        controller = "Hyrax::#{document.hydra_model.model_name.collection.camelize}Controller".safe_constantize
+        (controller&.show_presenter || Hyrax::WorkShowPresenter).new(document, ability)
+      end
 
       LEAD_FIELDS = %i[title description abstract].freeze
 
