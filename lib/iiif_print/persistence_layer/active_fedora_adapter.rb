@@ -60,7 +60,12 @@ module IiifPrint
           parent_of_file_set&.member_of&.find(&:work?)
       end
 
+      # @deprecated Use Hyrax::SolrQueryBuilderService.construct_query, or ActiveFedora::SolrQueryBuilder.construct_query
+      #   on a Hyrax without it; removed in IiifPrint 4.0.
       def self.solr_construct_query(*args)
+        Deprecation.warn(self, "solr_construct_query is deprecated and will be removed in IiifPrint 4.0; " \
+                               "use Hyrax::SolrQueryBuilderService.construct_query instead, or " \
+                               "ActiveFedora::SolrQueryBuilder.construct_query on a Hyrax without it.")
         if defined?(Hyrax::SolrQueryBuilderService)
           Hyrax::SolrQueryBuilderService.construct_query(*args)
         else
