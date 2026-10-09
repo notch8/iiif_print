@@ -24,7 +24,8 @@ module IiifPrint
 
       ##
       # The profile's view definitions for the record, plus its title, description and abstract when the profile
-      # gives them no view block, since the show page shows those outside its field list.  Read once per request
+      # gives them no view block and allows them in the record's contexts, since the show page shows those outside
+      # its field list.  Read once per request
       # for each tenant, schema, version and context; each tenant numbers its own profile versions.
       def view_definitions_for(document)
         cache = RequestStore.store[:iiif_print_view_definitions] ||= {}
@@ -33,7 +34,7 @@ module IiifPrint
         tenant = Apartment::Tenant.current if defined?(Apartment::Tenant)
         cache[[tenant, schema_name(document), version, contexts]] ||= begin
           definitions = Hyrax::Schema.m3_schema_loader.view_definitions_for(schema: schema_name(document), version: version, contexts: contexts)
-          lead_definitions(document, definitions).merge(definitions.to_h.symbolize_keys)
+          lead_definitions(document, definitions, contexts).merge(definitions.to_h.symbolize_keys)
         end
       end
 
@@ -41,12 +42,21 @@ module IiifPrint
 
       LEAD_FIELDS = %i[title description abstract].freeze
 
-      def lead_definitions(document, definitions)
+      def lead_definitions(document, definitions, contexts)
         attributes = profile_attributes(document)
         (LEAD_FIELDS - definitions.to_h.keys.map(&:to_sym)).each_with_object({}) do |name, lead|
           config = attributes[name.to_s]
-          lead[name] = Hyrax::SchemaLoader::AttributeDefinition.new(name.to_s, config).view_options if config
+          next unless config && in_context?(config, contexts)
+
+          lead[name] = Hyrax::SchemaLoader::AttributeDefinition.new(name.to_s, config).view_options
         end
+      end
+
+      # The filter Hyrax's M3SchemaLoader applies to every field the profile gives a view block.
+      def in_context?(config, contexts)
+        return true if config['context'].blank?
+
+        (Array(contexts) & Array(config['context'])).any?
       end
 
       def profile_attributes(document)

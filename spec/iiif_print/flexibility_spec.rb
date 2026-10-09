@@ -45,6 +45,46 @@ RSpec.describe IiifPrint::Flexibility do
       expect(definitions[:title]).to eq(display_label: { 'default' => 'Name' })
     end
 
+    context "with a description and an abstract that have no view block" do
+      let(:attributes) do
+        { 'description' => { 'display_label' => { 'default' => 'Description' } },
+          'abstract' => { 'display_label' => { 'default' => 'Abstract' } } }
+      end
+
+      it "adds both, in the show page's order" do
+        expect(definitions.keys).to eq [:description, :abstract, :subject]
+      end
+    end
+
+    context "with a lead field the profile limits to a context" do
+      let(:attributes) { { 'description' => { 'context' => ['special'] } } }
+      let(:document) { double('SolrDocument', schema_version: '1', contexts: contexts) }
+
+      context "and a record in no context" do
+        let(:contexts) { nil }
+
+        it "leaves it out, as the show page does" do
+          expect(definitions.keys).to eq [:subject]
+        end
+      end
+
+      context "and a record in another context" do
+        let(:contexts) { ['other'] }
+
+        it "leaves it out, as the show page does" do
+          expect(definitions.keys).to eq [:subject]
+        end
+      end
+
+      context "and a record in that context" do
+        let(:contexts) { ['special'] }
+
+        it "adds it" do
+          expect(definitions.keys).to eq [:description, :subject]
+        end
+      end
+    end
+
     it "reads them once per request" do
       2.times { described_class.view_definitions_for(document) }
       expect(loader).to have_received(:view_definitions_for).once
