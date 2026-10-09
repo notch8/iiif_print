@@ -23,8 +23,8 @@ RSpec.shared_examples 'a search builder that shows parent works only' do
       expect(ids_found({})).to eq %w[show-parents-not-child show-parents-unflagged]
     end
 
-    it 'finds child works when asked to include them' do
-      expect(ids_found('include_child_works' => 'true')).to eq %w[show-parents-child]
+    it 'finds child works alongside the others when asked to include them' do
+      expect(ids_found('include_child_works' => 'true')).to eq %w[show-parents-child show-parents-not-child show-parents-unflagged]
     end
   end
 end
