@@ -14,6 +14,7 @@ module IiifPrint::IiifPrintHelperBehavior
                                     class: 'ocr_snippet first_snippet')]
     if snippets.length > 1
       snippets_content << render(partial: 'catalog/snippets_more',
+                                 formats: [:html],
                                  locals: { snippets: snippets.drop(1),
                                            options: options })
     end
