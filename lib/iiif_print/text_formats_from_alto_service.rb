@@ -18,7 +18,7 @@ module IiifPrint
       # Write data as UTF-8 encoded text
       File.open(save_path, "w:UTF-8") do |f|
         f.write(data)
-        IiifPrint.copy_derivatives_from_data_store(stream: data, directives: { url: file_set.id.to_s, container: 'extracted_text', mime_type: mime_type })
+        IiifPrint.copy_derivatives_from_data_store(stream: data, directives: { url: save_path, container: 'extracted_text', mime_type: mime_type })
       end
     end
 
@@ -28,6 +28,10 @@ module IiifPrint
       !File.size(path).zero?
     end
 
+    def alto_with_words?(path)
+      nonempty_file?(path) && IiifPrint::TextExtraction::AltoReader.new(path).text.present?
+    end
+
     # if there was no derivative yet, there might be one in-transit from
     #   an ingest, so check for that, and use its source if applicable:
     def incoming_alto_path
@@ -35,16 +39,17 @@ module IiifPrint
         fileset_id: @file_set.id,
         destination_name: 'xml'
       ).pluck(:path).uniq.first
-      path if nonempty_file?(path)
+      path if alto_with_words?(path)
     end
 
     def alto_path
-      # check first for existing, non-empty derivative data:
+      # check first for existing derivative data with words; an ALTO without
+      # words (e.g. from a failed OCR run) should not prevent OCR:
       path = derivative_path_factory.derivative_path_for_reference(
         @file_set,
         'xml'
       )
-      return path if nonempty_file?(path)
+      return path if alto_with_words?(path)
       incoming_alto_path
     end
 
@@ -67,6 +72,8 @@ module IiifPrint
         width,
         height
       )
+      IiifPrint.remove_extracted_text_for(file_set: @file_set)
+      save_derivative('xml', source_file)
       save_derivative('json', reader.json)
       save_derivative('txt', reader.text)
     end

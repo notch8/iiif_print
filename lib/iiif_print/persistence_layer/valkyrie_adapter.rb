@@ -208,6 +208,29 @@ module IiifPrint
       end
 
       ##
+      # Remove the fileset's extracted text records, so that re-extracting
+      # text replaces them rather than adding to them.  The stored files are
+      # kept: the new records are written to the same derivative paths.
+      #
+      # @param [Hyrax::FileSet] a Valkyrie fileset
+      # @return [TrueClass, nil] nil when there is nothing to remove
+      def self.remove_extracted_text_for(file_set:)
+        # re-read: earlier derivative plugins in the same job (e.g. the thumbnail)
+        # have saved the file set since the caller loaded it
+        file_set = Hyrax.query_service.find_by(id: file_set.id)
+        extracted = Hyrax.custom_queries.find_many_file_metadata_by_use(resource: file_set,
+        use: Hyrax::FileMetadata::Use.uri_for(use: :extracted_file)).to_a
+        return if extracted.empty?
+
+        # file_ids can hold Strings as well as Valkyrie::IDs, so compare as strings
+        extracted_ids = extracted.map { |file_metadata| file_metadata.id.to_s }
+        file_set.file_ids = file_set.file_ids.reject { |id| extracted_ids.include?(id.to_s) }
+        Hyrax.persister.save(resource: file_set)
+        extracted.each { |file_metadata| Hyrax.persister.delete(resource: file_metadata) }
+        true
+      end
+
+      ##
       # Extract text from the derivatives
       #
       # @param [Hyrax::FileSet] a Valkyrie fileset

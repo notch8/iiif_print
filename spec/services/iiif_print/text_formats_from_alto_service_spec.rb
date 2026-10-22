@@ -59,6 +59,47 @@ RSpec.describe IiifPrint::TextFormatsFromALTOService do
     end
   end
 
+  describe "#alto_path" do
+    let(:service) { described_class.new(valid_file_set) }
+    let(:derivative_path) { Hyrax::DerivativePath.derivative_path_for_reference(valid_file_set, 'xml') }
+
+    def write_derivative(content)
+      FileUtils.mkdir_p(File.dirname(derivative_path))
+      File.write(derivative_path, content)
+    end
+
+    after { FileUtils.rm_f(derivative_path) }
+
+    it "returns an existing ALTO derivative that has words" do
+      write_derivative(File.read(minimal_alto))
+      expect(service.alto_path).to eq derivative_path
+    end
+
+    it "ignores an existing ALTO derivative that has no words" do
+      write_derivative(IiifPrint::TextExtraction::RenderAlto.new(3400, 4400).to_alto([]))
+      expect(service.alto_path).to be_nil
+    end
+  end
+
+  describe "#create_derivatives" do
+    let(:service) { described_class.new(valid_file_set) }
+
+    before do
+      allow(service).to receive(:alto_path).and_return(minimal_alto)
+      allow(IiifPrint).to receive(:remove_extracted_text_for)
+      allow(IiifPrint).to receive(:copy_derivatives_from_data_store)
+    end
+
+    it "replaces the ALTO, JSON and text records, each with its own derivative file" do
+      service.create_derivatives('/a/path/that/does/not/matter')
+      expect(IiifPrint).to have_received(:remove_extracted_text_for).with(file_set: valid_file_set).ordered
+      %w[xml json txt].each do |ext|
+        expect(IiifPrint).to have_received(:copy_derivatives_from_data_store)
+          .with(stream: anything, directives: hash_including(url: Hyrax::DerivativePath.derivative_path_for_reference(valid_file_set, ext))).ordered
+      end
+    end
+  end
+
   describe "scaling matters" do
     # we need an ingested, characterized file:
     do_now_jobs = [

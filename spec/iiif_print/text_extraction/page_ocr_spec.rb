@@ -19,6 +19,7 @@ RSpec.describe IiifPrint::TextExtraction::PageOCR do
   let(:example_mono_tiff) { File.join(fixture_path, 'ocr_mono.tiff') }
   let(:example_color_tiff) { File.join(fixture_path, 'ocr_color.tiff') }
   let(:example_gray_jp2) { File.join(fixture_path, 'ocr_gray.jp2') }
+  let(:example_mono_jp2) { File.join(fixture_path, 'ocr_mono.jp2') }
   let(:ocr_from_gray_tiff) { described_class.new(example_gray_tiff) }
 
   describe "performs OCR" do
@@ -47,6 +48,11 @@ RSpec.describe IiifPrint::TextExtraction::PageOCR do
 
     it "gets words and coordinates from jp2 source" do
       ocr = described_class.new(example_gray_jp2)
+      match_ocr_expectations(ocr.words)
+    end
+
+    it "gets words and coordinates from one-bit jp2 source" do
+      ocr = described_class.new(example_mono_jp2)
       match_ocr_expectations(ocr.words)
     end
   end
