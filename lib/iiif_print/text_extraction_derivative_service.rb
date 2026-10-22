@@ -28,13 +28,16 @@ module IiifPrint
       # TODO: Do we need this source_path instance variable?
       @source_path = filename
       ocr = page_ocr_service_class.new(filename)
+      # run all OCR first, so a failed or empty run leaves existing text in place
+      contents = ocr_derivatives.transform_values { |method_name| ocr.public_send(method_name) }
+      return if contents[:txt].blank?
 
-      ocr_derivatives.each do |extension, method_name|
-        path = prepare_path(extension.to_s)
-        content = ocr.public_send(method_name)
+      IiifPrint.remove_extracted_text_for(file_set: file_set)
+
+      contents.each do |extension, content|
         next if content.blank?
 
-        write(content: content, path: path, extension: extension)
+        write(content: content, path: prepare_path(extension.to_s), extension: extension)
       end
     end
 

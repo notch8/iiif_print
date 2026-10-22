@@ -80,6 +80,7 @@ module IiifPrint
       :solr_name,
       :solr_query,
       :pdf_path_for,
+      :remove_extracted_text_for,
       to: :persistence_adapter
     )
   end

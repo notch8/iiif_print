@@ -18,7 +18,7 @@ module IiifPrint
       # Write data as UTF-8 encoded text
       File.open(save_path, "w:UTF-8") do |f|
         f.write(data)
-        IiifPrint.copy_derivatives_from_data_store(stream: data, directives: { url: file_set.id.to_s, container: 'extracted_text', mime_type: mime_type })
+        IiifPrint.copy_derivatives_from_data_store(stream: data, directives: { url: save_path, container: 'extracted_text', mime_type: mime_type })
       end
     end
 
@@ -72,6 +72,8 @@ module IiifPrint
         width,
         height
       )
+      IiifPrint.remove_extracted_text_for(file_set: @file_set)
+      save_derivative('xml', source_file)
       save_derivative('json', reader.json)
       save_derivative('txt', reader.text)
     end

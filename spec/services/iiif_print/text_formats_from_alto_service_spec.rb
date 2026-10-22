@@ -81,6 +81,25 @@ RSpec.describe IiifPrint::TextFormatsFromALTOService do
     end
   end
 
+  describe "#create_derivatives" do
+    let(:service) { described_class.new(valid_file_set) }
+
+    before do
+      allow(service).to receive(:alto_path).and_return(minimal_alto)
+      allow(IiifPrint).to receive(:remove_extracted_text_for)
+      allow(IiifPrint).to receive(:copy_derivatives_from_data_store)
+    end
+
+    it "replaces the ALTO, JSON and text records, each with its own derivative file" do
+      service.create_derivatives('/a/path/that/does/not/matter')
+      expect(IiifPrint).to have_received(:remove_extracted_text_for).with(file_set: valid_file_set).ordered
+      %w[xml json txt].each do |ext|
+        expect(IiifPrint).to have_received(:copy_derivatives_from_data_store)
+          .with(stream: anything, directives: hash_including(url: Hyrax::DerivativePath.derivative_path_for_reference(valid_file_set, ext))).ordered
+      end
+    end
+  end
+
   describe "scaling matters" do
     # we need an ingested, characterized file:
     do_now_jobs = [

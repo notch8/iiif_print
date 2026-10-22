@@ -12,6 +12,45 @@ RSpec.describe IiifPrint::PersistenceLayer::ValkyrieAdapter do
     end
   end
 
+  describe '.remove_extracted_text_for' do
+    subject { described_class.remove_extracted_text_for(file_set: file_set) }
+
+    let(:file_set) { double('FileSet', id: Valkyrie::ID.new('fs1'), file_ids: [Valkyrie::ID.new('original'), 'text']) }
+    let(:original) { double('FileMetadata', id: Valkyrie::ID.new('original')) }
+    let(:text) { double('FileMetadata', id: Valkyrie::ID.new('text')) }
+    let(:extracted_file_use) { Hyrax::FileMetadata::Use.uri_for(use: :extracted_file) }
+
+    before do
+      allow(Hyrax.query_service).to receive(:find_by).with(id: file_set.id).and_return(file_set)
+      allow(Hyrax.custom_queries).to receive(:find_many_file_metadata_by_use)
+        .with(resource: file_set, use: extracted_file_use).and_return(extracted.lazy)
+      allow(Hyrax.persister).to receive(:save)
+      allow(Hyrax.persister).to receive(:delete)
+    end
+
+    context 'when the file set has no extracted text' do
+      let(:extracted) { [] }
+
+      it 'returns without saving the file set' do
+        expect(subject).to be_nil
+        expect(Hyrax.persister).not_to have_received(:save)
+      end
+    end
+
+    context 'when the file set has extracted text' do
+      let(:extracted) { [text] }
+
+      before { allow(file_set).to receive(:file_ids=) }
+
+      it 'drops the records from the file set and deletes them' do
+        expect(subject).to be true
+        expect(file_set).to have_received(:file_ids=).with([original.id])
+        expect(Hyrax.persister).to have_received(:save).with(resource: file_set)
+        expect(Hyrax.persister).to have_received(:delete).with(resource: text)
+      end
+    end
+  end
+
   describe '.destroy_children_split_from' do
     subject { described_class.destroy_children_split_from(file_set: file_set, work: work, model: nil, user: nil) }
 

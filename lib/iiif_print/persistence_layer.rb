@@ -117,6 +117,10 @@ module IiifPrint
       def self.pdf_path_for(file_set:)
         raise NotImplementedError, "#{self}.{__method__}"
       end
+
+      def self.remove_extracted_text_for(file_set:)
+        raise NotImplementedError, "#{self}.{__method__}"
+      end
     end
   end
 end

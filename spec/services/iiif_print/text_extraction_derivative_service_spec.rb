@@ -80,6 +80,36 @@ RSpec.describe IiifPrint::TextExtractionDerivativeService do
     end
   end
 
+  describe "#create_derivatives_from_ocr" do
+    let(:service) { described_class.new(valid_file_set) }
+    let(:ocr) { instance_double(IiifPrint::TextExtraction::PageOCR, plain: 'text', alto: '<alto/>', word_json: '{}') }
+
+    before do
+      allow(IiifPrint::TextExtraction::PageOCR).to receive(:new).and_return(ocr)
+      allow(IiifPrint).to receive(:remove_extracted_text_for)
+      allow(service).to receive(:write)
+    end
+
+    it "removes existing extracted text before writing the new text" do
+      service.create_derivatives_from_ocr('page.tiff')
+      expect(IiifPrint).to have_received(:remove_extracted_text_for).with(file_set: valid_file_set).ordered
+      expect(service).to have_received(:write).exactly(3).times.ordered
+    end
+
+    it "keeps existing extracted text when OCR finds no text" do
+      allow(ocr).to receive(:plain).and_return('')
+      service.create_derivatives_from_ocr('page.tiff')
+      expect(IiifPrint).not_to have_received(:remove_extracted_text_for)
+      expect(service).not_to have_received(:write)
+    end
+
+    it "keeps existing extracted text when OCR fails" do
+      allow(ocr).to receive(:word_json).and_raise(StandardError, 'OCR failed')
+      expect { service.create_derivatives_from_ocr('page.tiff') }.to raise_error(StandardError, 'OCR failed')
+      expect(IiifPrint).not_to have_received(:remove_extracted_text_for)
+    end
+  end
+
   describe "Error handling" do
     let(:user) { create(:user) }
     let(:file_set_with_depositor) do

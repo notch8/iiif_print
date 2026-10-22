@@ -182,6 +182,14 @@ module IiifPrint
       end
 
       ##
+      # does nothing for ActiveFedora; it keeps no records for extracted text.
+      #
+      # @return [TrueClass]
+      def self.remove_extracted_text_for(*)
+        true
+      end
+
+      ##
       # Extract text from the derivatives
       #
       # @param [FileSet] an ActiveFedora fileset
