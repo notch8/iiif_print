@@ -75,10 +75,11 @@ module IiifPrint
 
       private
 
-      # transform the image into a one-bit TIFF for OCR
+      # transform the image into a one-bit TIFF for OCR; a one-bit JP2 is
+      # converted too, since Leptonica cannot read JP2 at one bit per sample
       def preprocess_image
         tool = IiifPrint::ImageTool.new(@path)
-        return if tool.metadata[:color] == 'monochrome'
+        return if tool.metadata[:color] == 'monochrome' && tool.metadata[:content_type] != 'image/jp2'
         intermediate_path = File.join(Dir.mktmpdir, 'monochrome-interim.tif')
         tool.convert(intermediate_path, true)
         @path = intermediate_path
