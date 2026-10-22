@@ -50,7 +50,7 @@ module IiifPrint
     end
 
     def cleanup_derivatives(*)
-      ocr_derivatives.keys do |extension|
+      ocr_derivatives.each_key do |extension|
         super(extension.to_s)
       end
     end
