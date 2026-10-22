@@ -59,6 +59,28 @@ RSpec.describe IiifPrint::TextFormatsFromALTOService do
     end
   end
 
+  describe "#alto_path" do
+    let(:service) { described_class.new(valid_file_set) }
+    let(:derivative_path) { Hyrax::DerivativePath.derivative_path_for_reference(valid_file_set, 'xml') }
+
+    def write_derivative(content)
+      FileUtils.mkdir_p(File.dirname(derivative_path))
+      File.write(derivative_path, content)
+    end
+
+    after { FileUtils.rm_f(derivative_path) }
+
+    it "returns an existing ALTO derivative that has words" do
+      write_derivative(File.read(minimal_alto))
+      expect(service.alto_path).to eq derivative_path
+    end
+
+    it "ignores an existing ALTO derivative that has no words" do
+      write_derivative(IiifPrint::TextExtraction::RenderAlto.new(3400, 4400).to_alto([]))
+      expect(service.alto_path).to be_nil
+    end
+  end
+
   describe "scaling matters" do
     # we need an ingested, characterized file:
     do_now_jobs = [

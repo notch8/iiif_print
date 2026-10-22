@@ -28,6 +28,10 @@ module IiifPrint
       !File.size(path).zero?
     end
 
+    def alto_with_words?(path)
+      nonempty_file?(path) && IiifPrint::TextExtraction::AltoReader.new(path).text.present?
+    end
+
     # if there was no derivative yet, there might be one in-transit from
     #   an ingest, so check for that, and use its source if applicable:
     def incoming_alto_path
@@ -35,16 +39,17 @@ module IiifPrint
         fileset_id: @file_set.id,
         destination_name: 'xml'
       ).pluck(:path).uniq.first
-      path if nonempty_file?(path)
+      path if alto_with_words?(path)
     end
 
     def alto_path
-      # check first for existing, non-empty derivative data:
+      # check first for existing derivative data with words; an ALTO without
+      # words (e.g. from a failed OCR run) should not prevent OCR:
       path = derivative_path_factory.derivative_path_for_reference(
         @file_set,
         'xml'
       )
-      return path if nonempty_file?(path)
+      return path if alto_with_words?(path)
       incoming_alto_path
     end
 
