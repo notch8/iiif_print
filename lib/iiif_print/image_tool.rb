@@ -29,18 +29,21 @@ module IiifPrint
     #   format is TIFF.
     # @param destination [String] Path to output / destination file
     # @param monochrome [Boolean] true if monochrome output, otherwise false
-    def convert(destination, monochrome = false)
+    # @param options [String, nil] ImageMagick options for the output; when
+    #   given, they replace the monochrome options
+    def convert(destination, monochrome = false, options: nil)
       raise 'JP2 output not yet supported' if destination.end_with?('jp2')
-      return convert_image(jp2_to_tiff(@path), destination, monochrome) if jp2?
-      convert_image(@path, destination, monochrome)
+      return convert_image(jp2_to_tiff(@path), destination, monochrome, options) if jp2?
+      convert_image(@path, destination, monochrome, options)
     end
 
     private
 
-    def convert_image(source, destination, monochrome)
+    def convert_image(source, destination, monochrome, options)
       monochrome &&= destination.slice(-4, 4).index('tif')
       mono_opts = "-depth 1 -monochrome -compress Group4 -type bilevel "
       opts = monochrome ? mono_opts : ''
+      opts = "#{options} " if options.present?
       cmd = "convert #{source} #{opts}#{destination} && sync"
       `#{cmd}`
     end

@@ -105,6 +105,13 @@ RSpec.describe IiifPrint::Configuration do
     end
   end
 
+  describe '#ocr_preprocess_options' do
+    it "is nil by default and can be configured" do
+      expect { config.ocr_preprocess_options = "-colorspace gray" }
+        .to change(config, :ocr_preprocess_options).from(nil).to("-colorspace gray")
+    end
+  end
+
   describe '#default_iiif_manifest_version' do
     subject { config.default_iiif_manifest_version }
 

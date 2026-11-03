@@ -188,6 +188,15 @@ module IiifPrint
       @additional_tesseract_options || ""
     end
 
+    ##
+    # ImageMagick options for the image Tesseract reads, in place of the
+    # default one-bit dithered TIFF. Dithering turns halftone photographs
+    # into specks Tesseract can spend hours reading as characters; a light
+    # blur on grayscale ("-colorspace gray -blur 0x1") avoids that.
+    #
+    # @return [String, nil]
+    attr_accessor :ocr_preprocess_options
+
     attr_writer :uv_config_path
     ##
     # According to https://github.com/samvera/hyrax/wiki/Hyrax-Management-Guide#universal-viewer-config

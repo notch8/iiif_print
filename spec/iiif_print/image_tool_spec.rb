@@ -98,6 +98,13 @@ describe IiifPrint::ImageTool do
       expect(described_class.new(dest).metadata[:color]).to eq 'monochrome'
     end
 
+    it "uses the given options in place of the monochrome ones" do
+      tool = described_class.new(gray_jp2)
+      dest = File.join(Dir.mktmpdir, 'blurred.tif')
+      tool.convert(dest, true, options: '-colorspace gray -blur 0x1.5')
+      expect(described_class.new(dest).metadata[:color]).to eq 'gray'
+    end
+
     # Not yet supported to use this tool to make JP2, for now the only
     #   component in IiifPrint doing that is
     #   IiifPrint::JP2DerivativeService
