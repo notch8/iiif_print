@@ -198,6 +198,10 @@ IiifPrint.config do |config|
   # Add configurable solr field key for searching, default key is: 'human_readable_type_sim' if
   # another key is used, make sure to adjust the config.excluded_model_name_solr_field_values to match
   config.excluded_model_name_solr_field_key = 'some_solr_field_key'
+
+  # ImageMagick options for the image Tesseract reads, in place of the default one-bit dithered TIFF.
+  # A light blur on grayscale keeps halftone photographs from turning into specks Tesseract reads for hours.
+  config.ocr_preprocess_options = '-colorspace gray -blur 0x1'
 end
 ```
 

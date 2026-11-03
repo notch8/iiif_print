@@ -57,6 +57,22 @@ RSpec.describe IiifPrint::TextExtraction::PageOCR do
     end
   end
 
+  describe "with configured preprocessing" do
+    around do |example|
+      IiifPrint.config.ocr_preprocess_options = '-colorspace gray -blur 0x1.5'
+      example.run
+    ensure
+      IiifPrint.config.ocr_preprocess_options = nil
+    end
+
+    it "reads words from the image those options make" do
+      ocr = described_class.new(example_gray_tiff)
+      words = ocr.words
+      expect(IiifPrint::ImageTool.new(ocr.path).metadata[:color]).to eq 'gray'
+      expect(words).not_to be_empty
+    end
+  end
+
   describe "turns image into ALTO" do
     xit "takes grayscale tiff, outputs valid ALTO, geometry" do
       alto = ocr_from_gray_tiff.alto

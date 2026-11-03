@@ -81,7 +81,7 @@ module IiifPrint
         tool = IiifPrint::ImageTool.new(@path)
         return if tool.metadata[:color] == 'monochrome' && tool.metadata[:content_type] != 'image/jp2'
         intermediate_path = File.join(Dir.mktmpdir, 'monochrome-interim.tif')
-        tool.convert(intermediate_path, true)
+        tool.convert(intermediate_path, true, options: IiifPrint.config.ocr_preprocess_options)
         @path = intermediate_path
       end
     end
